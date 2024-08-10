@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "233048685225",
+    "project_id": "learnsmart-ce842",
+    "storage_bucket": "learnsmart-ce842.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233048685225:android:0e614ca4c4505238cf47b8",
+        "android_client_info": {
+          "package_name": "com.example.learnsmart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQZq7YJcyGtqzq0OliJXREs4NSVjAC9vw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
