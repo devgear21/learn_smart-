@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class CourseOption extends StatelessWidget {
+class CourseOption extends StatefulWidget {
   const CourseOption({super.key});
+
+  @override
+  _CourseOptionState createState() => _CourseOptionState();
+}
+
+class _CourseOptionState extends State<CourseOption> {
+  String? selectedCourse;
 
   @override
   Widget build(BuildContext context) {
@@ -119,27 +126,45 @@ class CourseOption extends StatelessWidget {
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CourseOptionItem(
                     title: 'English',
-                    borderColor: Color(0xFF4C6ED7),
-                    textColor: Color(0xFF4C6ED7),
+                    borderColor: const Color(0xFF4C6ED7),
+                    textColor: const Color(0xFF4C6ED7),
+                    onTap: () {
+                      setState(() {
+                        selectedCourse = 'English';
+                      });
+                    },
+                    isSelected: selectedCourse == 'English',
                   ),
-                  SizedBox(height: 25),
+                  const SizedBox(height: 25),
                   CourseOptionItem(
                     title: 'Mathematics',
-                    borderColor: Color(0xFF4C6ED7),
-                    textColor: Color(0xFF4C6ED7),
+                    borderColor: const Color(0xFF4C6ED7),
+                    textColor: const Color(0xFF4C6ED7),
+                    onTap: () {
+                      setState(() {
+                        selectedCourse = 'Mathematics';
+                      });
+                    },
+                    isSelected: selectedCourse == 'Mathematics',
                   ),
-                  SizedBox(height: 25),
+                  const SizedBox(height: 25),
                   CourseOptionItem(
                     title: 'General Knowledge',
-                    borderColor: Color(0xFF4C6ED7),
-                    textColor: Color(0xFF4C6ED7),
+                    borderColor: const Color(0xFF4C6ED7),
+                    textColor: const Color(0xFF4C6ED7),
+                    onTap: () {
+                      setState(() {
+                        selectedCourse = 'General Knowledge';
+                      });
+                    },
+                    isSelected: selectedCourse == 'General Knowledge',
                   ),
                 ],
               ),
@@ -149,7 +174,11 @@ class CourseOption extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
               child: GestureDetector(
                 onTap: () {
-                  // Add functionality for the "Get Started" button
+                  if (selectedCourse == 'English') {
+                    Navigator.pushNamed(context, '/learning_modules');
+                  } else {
+                    // You can handle other cases or show a message
+                  }
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -203,31 +232,41 @@ class CourseOptionItem extends StatelessWidget {
   final String title;
   final Color borderColor;
   final Color textColor;
+  final VoidCallback onTap;
+  final bool isSelected;
 
-  const CourseOptionItem({super.key, 
+  const CourseOptionItem({
+    super.key,
     required this.title,
     required this.borderColor,
     required this.textColor,
+    required this.onTap,
+    required this.isSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(6),
-        color: const Color(0xFFFDFDFD),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
-      child: Center(
-        child: Text(
-          title,
-          style: GoogleFonts.getFont(
-            'Inter',
-            fontWeight: FontWeight.w400,
-            fontSize: 18,
-            height: 1.6,
-            color: textColor,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: isSelected ? Colors.green : borderColor),
+          borderRadius: BorderRadius.circular(6),
+          color: isSelected
+              ? Color.fromARGB(255, 18, 0, 118).withOpacity(0.2)
+              : const Color(0xFFFDFDFD),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
+        child: Center(
+          child: Text(
+            title,
+            style: GoogleFonts.getFont(
+              'Inter',
+              fontWeight: FontWeight.w400,
+              fontSize: 18,
+              height: 1.6,
+              color: isSelected ? Color.fromARGB(255, 0, 6, 129) : textColor,
+            ),
           ),
         ),
       ),

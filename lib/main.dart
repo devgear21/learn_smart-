@@ -7,6 +7,7 @@ import 'package:learnsmart/pages/on_boarding_2.dart';
 import 'package:learnsmart/pages/on_boarding_3.dart';
 import 'package:learnsmart/pages/register.dart';
 import 'package:learnsmart/pages/splash_screen.dart';
+import 'package:learnsmart/pages/learning_modules_screen.dart';
 // Import your firebase options file if used
 // import 'firebase_options.dart';
 
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
         '/onboarding3': (context) => const OnBoarding3(),
         '/splashscreen': (context) => const SplashScreen(),
         '/courseoption': (context) => const CourseOption(),
+        '/learning_modules': (context) => LearningModulesScreen(),
       },
     );
   }
