@@ -3,10 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'quiz_screen.dart';
 
 class LessonContentScreen extends StatelessWidget {
-  final String lessonId;
   final String moduleId;
+  final String lessonId;
 
-  LessonContentScreen({required this.lessonId, required this.moduleId});
+  LessonContentScreen(
+      {super.key, required this.moduleId, required this.lessonId});
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -14,34 +15,51 @@ class LessonContentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Lesson Content')),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: _firestore
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: _firestore
             .collection('modules')
             .doc(moduleId)
             .collection('lessons')
             .doc(lessonId)
-            .get(),
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text('Lesson not found'));
+            return Center(child: Text('No content available'));
           }
 
-          final lesson = snapshot.data!.data() as Map<String, dynamic>;
-          final content = lesson['content'] as List<dynamic>;
-          final quiz = lesson['quiz'] as Map<String, dynamic>?;
+          final lessonData = snapshot.data!.data() as Map<String, dynamic>?;
+
+          // Check if lessonData is null
+          if (lessonData == null) {
+            print('Lesson content data is null for lessonId: $lessonId');
+            return Center(child: Text('No lesson data found'));
+          }
+
+          final content = lessonData['content'] as List<dynamic>? ?? [];
+          final quiz = lessonData['quiz'] as Map<String, dynamic>?;
 
           return ListView.builder(
             itemCount: content.length + (quiz != null ? 1 : 0),
             itemBuilder: (context, index) {
               if (index < content.length) {
-                final item = content[index] as Map<String, dynamic>;
+                final item = content[index] as Map<String, dynamic>?;
+
+                // Check if item is null
+                if (item == null) {
+                  print('Content item is null at index: $index');
+                  return ListTile(
+                    title: Text('Unknown Content'),
+                    subtitle: Text('Data not available'),
+                  );
+                }
+
                 if (item['type'] == 'audio') {
                   return ListTile(
-                    title: Text(item['description']),
+                    title: Text(item['description'] ?? 'No description'),
                     trailing: Icon(Icons.audiotrack),
                     onTap: () {
                       // Play audio logic
@@ -50,14 +68,14 @@ class LessonContentScreen extends StatelessWidget {
                 } else if (item['type'] == 'image') {
                   return Column(
                     children: [
-                      Image.network(item['url']),
-                      Text(item['description']),
+                      Image.network(item['url'] ?? ''),
+                      Text(item['description'] ?? 'No description'),
                     ],
                   );
                 } else if (item['type'] == 'text') {
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(item['content']),
+                    child: Text(item['content'] ?? ''),
                   );
                 }
               } else if (quiz != null) {

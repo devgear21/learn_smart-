@@ -5,7 +5,7 @@ import 'lesson_content_screen.dart';
 class LessonsScreen extends StatelessWidget {
   final String moduleId;
 
-  LessonsScreen({required this.moduleId});
+  LessonsScreen({super.key, required this.moduleId});
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -33,12 +33,28 @@ class LessonsScreen extends StatelessWidget {
           return ListView.builder(
             itemCount: lessons.length,
             itemBuilder: (context, index) {
-              final lesson = lessons[index].data() as Map<String, dynamic>;
+              final lessonData = lessons[index].data() as Map<String, dynamic>?;
               final lessonId = lessons[index].id;
 
+              // Check if lessonData is null
+              if (lessonData == null) {
+                print('Lesson data is null for lessonId: $lessonId');
+                return ListTile(
+                  title: Text('Unknown Lesson'),
+                  subtitle: Text('Data not available'),
+                );
+              }
+
+              final lessonTitle = lessonData['title'] ?? 'Untitled Lesson';
+              final lessonDescription =
+                  lessonData['description'] ?? 'No description available';
+
+              print(
+                  'Lesson ID: $lessonId, Title: $lessonTitle, Description: $lessonDescription');
+
               return ListTile(
-                title: Text(lesson['title']),
-                subtitle: Text(lesson['description']),
+                title: Text(lessonTitle),
+                subtitle: Text(lessonDescription),
                 onTap: () {
                   Navigator.push(
                     context,

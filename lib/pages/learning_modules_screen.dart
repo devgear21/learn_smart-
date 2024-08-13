@@ -16,21 +16,34 @@ class LearningModulesScreen extends StatelessWidget {
             return Center(child: CircularProgressIndicator());
           }
 
-          final modules = snapshot.data?.docs ?? [];
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No modules available'));
+          }
+
+          final modules = snapshot.data!.docs;
 
           return ListView.builder(
             itemCount: modules.length,
             itemBuilder: (context, index) {
-              final module = modules[index].data() as Map<String, dynamic>;
+              final moduleData = modules[index].data() as Map<String, dynamic>;
+              final moduleId = modules[index].id;
+              final moduleTitle = moduleData['title'] ??
+                  'Untitled Module'; // Provide a default value
+              final moduleDescription = moduleData['description'] ??
+                  'No description available'; // Provide a default value
+
+              // Debugging output to check the module data
+              print(
+                  'Module ID: $moduleId, Title: $moduleTitle, Description: $moduleDescription');
+
               return ListTile(
-                title: Text(module['title']),
-                subtitle: Text(module['description']),
+                title: Text(moduleTitle),
+                subtitle: Text(moduleDescription),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          LessonsScreen(module: modules[index]),
+                      builder: (context) => LessonsScreen(moduleId: moduleId),
                     ),
                   );
                 },
