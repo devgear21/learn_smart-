@@ -16,6 +16,9 @@ dependencies:
   firebase_core: ^3.2.0
   firebase_auth: ^5.1.2
   cloud_firestore: ^5.1.0
+  image_picker: ^1.0.0
+  permission_handler: ^11.0.1
+  
 
 dev_dependencies:
   flutterfire_cli: ^1.0.1-dev.2  # Updated version
@@ -206,3 +209,5 @@ flutter:
   - assets/vectors/vector_20_x2.svg
   - assets/vectors/cellular_connection_x2.svg
   - assets/vectors/wifi_15_x2.svg
+  - assets/images/login_illustration.png
+  - assets/images/splash_illustration.png

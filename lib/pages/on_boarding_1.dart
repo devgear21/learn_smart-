@@ -77,7 +77,8 @@ class OnBoarding1 extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    margin: const EdgeInsets.fromLTRB(0, 0.3, 0, 0.3),
+                                    margin: const EdgeInsets.fromLTRB(
+                                        0, 0.3, 0, 0.3),
                                     child: SizedBox(
                                       width: 17,
                                       height: 10.7,
@@ -87,7 +88,8 @@ class OnBoarding1 extends StatelessWidget {
                                     ),
                                   ),
                                   Container(
-                                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0.3),
+                                    margin:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 0.3),
                                     child: SizedBox(
                                       width: 15.3,
                                       height: 11,
@@ -97,7 +99,8 @@ class OnBoarding1 extends StatelessWidget {
                                     ),
                                   ),
                                   Container(
-                                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                    margin:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                     child: SizedBox(
                                       width: 24.3,
                                       height: 11.3,
@@ -141,7 +144,7 @@ class OnBoarding1 extends StatelessWidget {
                     margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8DA6F4),
+                        color: const Color.fromARGB(255, 33, 150, 243),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: SizedBox(
@@ -149,7 +152,7 @@ class OnBoarding1 extends StatelessWidget {
                         height: 8,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4C6ED7),
+                            color: const Color.fromARGB(255, 33, 150, 243),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const SizedBox(
@@ -164,13 +167,14 @@ class OnBoarding1 extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const OnBoarding2()),
+                        MaterialPageRoute(
+                            builder: (context) => const OnBoarding2()),
                       );
                     },
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(11.7, 0, 11.7, 15),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4C6ED7),
+                        color: const Color.fromARGB(255, 33, 150, 243),
                         borderRadius: BorderRadius.circular(6),
                         boxShadow: const [
                           BoxShadow(
@@ -199,7 +203,8 @@ class OnBoarding1 extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const CourseOption()),
+                        MaterialPageRoute(
+                            builder: (context) => const CourseOption()),
                       );
                     },
                     child: Container(
@@ -207,7 +212,8 @@ class OnBoarding1 extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFDFDFD),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFF4C6ED7)),
+                        border: Border.all(
+                            color: const Color.fromARGB(255, 33, 150, 243)),
                         boxShadow: const [
                           BoxShadow(
                             color: Colors.black12,
@@ -225,7 +231,7 @@ class OnBoarding1 extends StatelessWidget {
                             fontWeight: FontWeight.w400,
                             fontSize: 14,
                             height: 1.7,
-                            color: const Color(0xFF4C6ED7),
+                            color: const Color.fromARGB(255, 33, 150, 243),
                           ),
                         ),
                       ),

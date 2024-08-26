@@ -25,14 +25,22 @@ class LearningModulesScreen extends StatelessWidget {
           return ListView.builder(
             itemCount: modules.length,
             itemBuilder: (context, index) {
-              final moduleData = modules[index].data() as Map<String, dynamic>;
+              final moduleData = modules[index].data() as Map<String, dynamic>?;
               final moduleId = modules[index].id;
-              final moduleTitle = moduleData['title'] ??
-                  'Untitled Module'; // Provide a default value
-              final moduleDescription = moduleData['description'] ??
-                  'No description available'; // Provide a default value
 
-              // Debugging output to check the module data
+              // Check if moduleData is null
+              if (moduleData == null) {
+                print('Module data is null for moduleId: $moduleId');
+                return ListTile(
+                  title: Text('Unknown Module'),
+                  subtitle: Text('Data not available'),
+                );
+              }
+
+              final moduleTitle = moduleData['title'] ?? 'Untitled Module';
+              final moduleDescription =
+                  moduleData['description'] ?? 'No description available';
+
               print(
                   'Module ID: $moduleId, Title: $moduleTitle, Description: $moduleDescription');
 

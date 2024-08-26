@@ -250,7 +250,9 @@ class CourseOptionItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: isSelected ? Colors.green : borderColor),
+          border: Border.all(
+              color:
+                  isSelected ? Color.fromARGB(255, 18, 0, 118) : borderColor),
           borderRadius: BorderRadius.circular(6),
           color: isSelected
               ? Color.fromARGB(255, 18, 0, 118).withOpacity(0.2)

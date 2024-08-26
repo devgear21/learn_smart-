@@ -8,6 +8,9 @@ import 'package:learnsmart/pages/on_boarding_3.dart';
 import 'package:learnsmart/pages/register.dart';
 import 'package:learnsmart/pages/splash_screen.dart';
 import 'package:learnsmart/pages/learning_modules_screen.dart';
+import 'package:learnsmart/pages/user_info_screen.dart';
+// Import the ChildInfoPage
+
 // Import your firebase options file if used
 // import 'firebase_options.dart';
 
@@ -40,6 +43,18 @@ class MyApp extends StatelessWidget {
         '/splashscreen': (context) => const SplashScreen(),
         '/courseoption': (context) => const CourseOption(),
         '/learning_modules': (context) => LearningModulesScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/child_info') {
+          final String userId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) {
+              return ChildInfoPage(userId: userId);
+            },
+          );
+        }
+        // Handle other routes here if needed
+        return null; // If no match, return null
       },
     );
   }
