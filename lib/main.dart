@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase core
+import 'package:learnsmart/home_page.dart';
 import 'package:learnsmart/pages/course_option.dart';
 import 'package:learnsmart/pages/login.dart';
 import 'package:learnsmart/pages/on_boarding_1.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         '/onboarding1': (context) => const OnBoarding1(),
         '/onboarding2': (context) => const OnBoarding2(),
         '/onboarding3': (context) => const OnBoarding3(),
+        '/homepage': (context) => HomePage(),
         '/splashscreen': (context) => const SplashScreen(),
         '/courseoption': (context) => const CourseOption(),
         '/learning_modules': (context) => LearningModulesScreen(),

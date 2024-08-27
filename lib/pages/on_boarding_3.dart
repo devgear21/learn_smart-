@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'course_option.dart';
+import 'package:learnsmart/home_page.dart';
 
 class OnBoarding3 extends StatelessWidget {
   const OnBoarding3({super.key});
@@ -166,8 +166,7 @@ class OnBoarding3 extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const CourseOption()),
+                        MaterialPageRoute(builder: (context) => HomePage()),
                       );
                     },
                     child: Container(

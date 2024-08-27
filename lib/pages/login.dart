@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:learnsmart/home_page.dart';
 import 'package:learnsmart/pages/register.dart';
-import 'package:learnsmart/pages/on_boarding_1.dart';
+//import 'package:learnsmart/pages/home_page.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -71,7 +72,7 @@ class _LoginState extends State<Login> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const OnBoarding1()),
+          MaterialPageRoute(builder: (context) => HomePage()),
         );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {

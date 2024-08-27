@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ChildInfoPage extends StatefulWidget {
   final String userId;
@@ -18,13 +19,38 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
+  final _passwordController = TextEditingController();
   String? _learningPreference;
   bool _dyslexia = false;
   bool _asd = false;
   File? _image;
+  bool _isLoading = false;
 
   Future<void> _saveInfo() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      String? imageUrl;
+
+      // Upload image to Firebase Storage if an image is selected
+      if (_image != null) {
+        try {
+          final storageRef = FirebaseStorage.instance.ref().child(
+              'child_images/${widget.userId}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+          final uploadTask = storageRef.putFile(_image!);
+          final snapshot = await uploadTask.whenComplete(() => null);
+          imageUrl = await snapshot.ref.getDownloadURL();
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image upload failed: $e')),
+          );
+        }
+      }
+
+      // Save information to Firestore, including image URL if available
       await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.userId)
@@ -34,7 +60,13 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
         'learningPreference': _learningPreference,
         'dyslexia': _dyslexia,
         'asd': _asd,
-        'onboardingComplete': false, // Indicate onboarding is not complete
+        'parentalLockPassword': _passwordController.text,
+        'imageUrl': imageUrl, // Save the image URL
+        'onboardingComplete': false,
+      });
+
+      setState(() {
+        _isLoading = false;
       });
 
       Navigator.pushReplacementNamed(context, '/onboarding1');
@@ -42,7 +74,6 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    // Check and request camera permission
     if (source == ImageSource.camera) {
       final status = await Permission.camera.request();
       if (!status.isGranted) {
@@ -54,7 +85,6 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
       }
     }
 
-    // Check and request gallery permission
     if (source == ImageSource.gallery) {
       final status = await Permission.photos.request();
       if (!status.isGranted) {
@@ -82,7 +112,7 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Child Info",
+          "Child Information",
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -277,60 +307,81 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 },
               ),
               const SizedBox(height: 20),
-              SwitchListTile(
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: "Set Parental Lock Password",
+                  labelStyle: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 16.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(color: Colors.grey[400]!),
+                  ),
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please set a parental lock password';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              CheckboxListTile(
                 title: Text(
-                  "Dyslexia",
+                  'Dyslexia',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 value: _dyslexia,
-                onChanged: (bool value) {
-                  if (!_asd) {
-                    setState(() {
-                      _dyslexia = value;
-                    });
-                  }
+                onChanged: (value) {
+                  setState(() {
+                    _dyslexia = value!;
+                  });
                 },
+                controlAffinity: ListTileControlAffinity.leading,
               ),
-              SwitchListTile(
+              const SizedBox(height: 10),
+              CheckboxListTile(
                 title: Text(
-                  "Autism Spectrum Disorder (ASD)",
+                  'ASD (Autism Spectrum Disorder)',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 value: _asd,
-                onChanged: (bool value) {
-                  if (!_dyslexia) {
-                    setState(() {
-                      _asd = value;
-                    });
-                  }
+                onChanged: (value) {
+                  setState(() {
+                    _asd = value!;
+                  });
                 },
+                controlAffinity: ListTileControlAffinity.leading,
               ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveInfo,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 5,
-                  ),
-                  child: Text(
-                    'Save Info',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _saveInfo,
+                child: _isLoading
+                    ? const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                    : Text(
+                        'Save Information',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
               ),
