@@ -15,7 +15,7 @@ class _CourseOptionState extends State<CourseOption> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -105,7 +105,7 @@ class _CourseOptionState extends State<CourseOption> {
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 33, 150, 243),
+                          color: const Color.fromARGB(255, 33, 150, 243),
                         ),
                       ),
                     ),
@@ -159,8 +159,9 @@ class CourseOptionItem extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w500,
-              color:
-                  isSelected ? Color.fromARGB(255, 33, 150, 243) : Colors.white,
+              color: isSelected
+                  ? const Color.fromARGB(255, 33, 150, 243)
+                  : Colors.white,
             ),
           ),
         ),

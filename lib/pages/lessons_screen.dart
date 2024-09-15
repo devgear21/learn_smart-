@@ -12,7 +12,7 @@ class LessonsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Lessons')),
+      appBar: AppBar(title: const Text('Lessons')),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('modules')
@@ -21,11 +21,11 @@ class LessonsScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No lessons available'));
+            return const Center(child: Text('No lessons available'));
           }
 
           final lessons = snapshot.data!.docs;
@@ -39,7 +39,7 @@ class LessonsScreen extends StatelessWidget {
               // Check if lessonData is null
               if (lessonData == null) {
                 print('Lesson data is null for lessonId: $lessonId');
-                return ListTile(
+                return const ListTile(
                   title: Text('Unknown Lesson'),
                   subtitle: Text('Data not available'),
                 );

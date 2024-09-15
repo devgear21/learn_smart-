@@ -12,6 +12,9 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   flutter_svg: ^2.0.10+1
+  speech_to_text: ^7.0.0
+  flutter_tts: ^3.5.0
+  http: ^1.2.2
   google_fonts: ^5.1.0
   firebase_core: ^3.2.0
   firebase_auth: ^5.1.2
@@ -212,3 +215,9 @@ flutter:
   - assets/vectors/wifi_15_x2.svg
   - assets/images/login_illustration.png
   - assets/images/splash_illustration.png
+  - assets/images/hand.png
+  - assets/images/lips.png
+  - assets/images/eyes_open.png
+  - assets/images/smile.png
+  - assets/images/avatar_base.png
+  - assets/images/background.jpg

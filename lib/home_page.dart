@@ -2,10 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:learnsmart/pages/chatbot_screen.dart';
+import 'package:learnsmart/pages/conversation.dart';
 import 'package:learnsmart/pages/course_option.dart';
-import 'package:learnsmart/pages/progress_track.dart'; // Import your progress_track.dart file
+import 'package:learnsmart/pages/progress_track.dart';
+//import 'package:learnsmart/pages/avatar_screen.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -13,6 +18,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String? childName;
   String? userEmail;
+  String? profileImageUrl;
   int _selectedIndex = 0;
 
   @override
@@ -35,6 +41,7 @@ class _HomePageState extends State<HomePage> {
       if (snapshot.exists) {
         setState(() {
           childName = snapshot.data()?['name'];
+          profileImageUrl = snapshot.data()?['profileImageUrl'];
         });
       }
     }
@@ -46,7 +53,6 @@ class _HomePageState extends State<HomePage> {
     });
 
     if (index == 1) {
-      // Parental lock check before navigating to ProgressTrackPage
       bool isUnlocked = await _checkParentalLock(context);
       if (isUnlocked) {
         Navigator.push(
@@ -77,28 +83,29 @@ class _HomePageState extends State<HomePage> {
               context: context,
               builder: (context) {
                 return AlertDialog(
-                  title: Text('Enter Parental Lock Password'),
+                  title: const Text('Enter Parental Lock Password'),
                   content: TextField(
                     controller: lockController,
                     obscureText: true,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Enter Password',
                     ),
                   ),
                   actions: [
                     TextButton(
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                       onPressed: () {
                         Navigator.of(context).pop(false);
                       },
                     ),
                     TextButton(
-                      child: Text('Unlock'),
+                      child: const Text('Unlock'),
                       onPressed: () {
                         if (lockController.text == storedPassword) {
                           Navigator.of(context).pop(true);
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
                             content: Text('Incorrect password'),
                           ));
                           Navigator.of(context).pop(false);
@@ -112,15 +119,34 @@ class _HomePageState extends State<HomePage> {
             false;
       }
     }
-    return true; // If no parental lock is set, allow access
+    return true;
+  }
+
+  void _showProfileImage(BuildContext context) {
+    if (profileImageUrl != null) {
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Image.network(profileImageUrl!),
+          ),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 33, 150, 243),
+        backgroundColor: const Color.fromARGB(255, 33, 150, 243),
         title: Text(
           childName != null ? 'Welcome, $childName' : 'Welcome',
           style: GoogleFonts.poppins(
@@ -131,20 +157,29 @@ class _HomePageState extends State<HomePage> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.white,
-              child:
-                  Icon(Icons.person, color: Color.fromARGB(255, 33, 150, 243)),
+            child: GestureDetector(
+              onTap: () => _showProfileImage(context),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                backgroundImage: profileImageUrl != null
+                    ? NetworkImage(profileImageUrl!)
+                    : null,
+                child: profileImageUrl == null
+                    ? const Icon(Icons.person,
+                        color: Color.fromARGB(255, 33, 150, 243))
+                    : null,
+              ),
             ),
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.04, vertical: screenHeight * 0.02),
         child: ListView(
           children: [
             SizedBox(
-              height: 50,
+              height: screenHeight * 0.06,
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search your topics',
@@ -188,11 +223,11 @@ class _HomePageState extends State<HomePage> {
             GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: screenWidth < 600 ? 2 : 4,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 3 / 2,
+                childAspectRatio: screenWidth < 600 ? 3 / 2 : 4 / 3,
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
@@ -201,7 +236,7 @@ class _HomePageState extends State<HomePage> {
                     return CategoryCard(
                       category: 'Courses',
                       courseCount: 'Explore Learning',
-                      color: Color.fromARGB(255, 33, 150, 243),
+                      color: const Color.fromARGB(255, 33, 150, 243),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -215,8 +250,13 @@ class _HomePageState extends State<HomePage> {
                     return CategoryCard(
                       category: 'ChatBuddy',
                       courseCount: 'Interact with AI',
-                      color: Color.fromARGB(255, 33, 150, 243),
+                      color: const Color.fromARGB(255, 33, 150, 243),
                       onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatbotScreen(),
+                            ));
                         // Add navigation or functionality for ChatBuddy
                       },
                     );
@@ -224,8 +264,13 @@ class _HomePageState extends State<HomePage> {
                     return CategoryCard(
                       category: 'FaceBuddy',
                       courseCount: 'Talk to your Avatar',
-                      color: Color.fromARGB(255, 33, 150, 243),
+                      color: const Color.fromARGB(255, 33, 150, 243),
                       onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ConversationScreen(),
+                            ));
                         // Add navigation or functionality for FaceBuddy
                       },
                     );
@@ -233,7 +278,7 @@ class _HomePageState extends State<HomePage> {
                     return CategoryCard(
                       category: 'Rewards',
                       courseCount: 'See your trophies!',
-                      color: Color.fromARGB(255, 33, 150, 243),
+                      color: const Color.fromARGB(255, 33, 150, 243),
                       onTap: () {
                         // Add navigation or functionality for Rewards
                       },
@@ -249,7 +294,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         backgroundColor: Colors.white,
-        selectedItemColor: Color.fromARGB(255, 33, 150, 243),
+        selectedItemColor: const Color.fromARGB(255, 33, 150, 243),
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         items: const [
@@ -282,45 +327,48 @@ class CategoryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const CategoryCard({
-    Key? key,
+    super.key,
     required this.category,
     required this.courseCount,
     required this.color,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+
     return GestureDetector(
       onTap: onTap,
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+            vertical: screenHeight * 0.02, horizontal: screenWidth * 0.04),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(15),
         ),
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.category,
-                size: 40,
-                color: color,
-              ),
-              const SizedBox(height: 8),
               Text(
                 category,
-                style: const TextStyle(
-                  fontSize: 16,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: screenWidth * 0.05,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 4),
               Text(
                 courseCount,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: screenWidth * 0.03,
+                  color: Colors.grey[200],
                 ),
               ),
             ],

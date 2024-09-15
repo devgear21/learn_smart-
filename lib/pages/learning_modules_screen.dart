@@ -5,19 +5,21 @@ import 'lessons_screen.dart';
 class LearningModulesScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  LearningModulesScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Learning Modules')),
+      appBar: AppBar(title: const Text('Learning Modules')),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore.collection('modules').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No modules available'));
+            return const Center(child: Text('No modules available'));
           }
 
           final modules = snapshot.data!.docs;
@@ -31,7 +33,7 @@ class LearningModulesScreen extends StatelessWidget {
               // Check if moduleData is null
               if (moduleData == null) {
                 print('Module data is null for moduleId: $moduleId');
-                return ListTile(
+                return const ListTile(
                   title: Text('Unknown Module'),
                   subtitle: Text('Data not available'),
                 );

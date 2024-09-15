@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 class ProgressTrackPage extends StatefulWidget {
   final String userId;
 
-  const ProgressTrackPage({Key? key, required this.userId}) : super(key: key);
+  const ProgressTrackPage({super.key, required this.userId});
 
   @override
   _ProgressTrackPageState createState() => _ProgressTrackPageState();
@@ -64,7 +64,7 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
           content: TextField(
             controller: _passwordController,
             obscureText: true,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: "Password",
             ),
@@ -79,11 +79,11 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Incorrect password')),
+                    const SnackBar(content: Text('Incorrect password')),
                   );
                 }
               },
-              child: Text("Unlock"),
+              child: const Text("Unlock"),
             ),
           ],
         );
@@ -94,7 +94,7 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLocked) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
           child: CircularProgressIndicator(
@@ -114,7 +114,7 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Color.fromARGB(255, 33, 150, 243),
+        backgroundColor: const Color.fromARGB(255, 33, 150, 243),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -124,7 +124,7 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
                   dateRange,
                   style: GoogleFonts.poppins(fontSize: 16),
                 ),
-                Icon(Icons.arrow_drop_down),
+                const Icon(Icons.arrow_drop_down),
               ],
             ),
           ),

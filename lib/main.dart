@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase core
+import 'package:learnsmart/pages/chatbot_screen.dart';
 import 'package:learnsmart/home_page.dart';
+import 'package:learnsmart/pages/avatar_screen.dart';
+import 'package:learnsmart/pages/conversation.dart';
 import 'package:learnsmart/pages/course_option.dart';
 import 'package:learnsmart/pages/login.dart';
 import 'package:learnsmart/pages/on_boarding_1.dart';
@@ -10,6 +13,9 @@ import 'package:learnsmart/pages/register.dart';
 import 'package:learnsmart/pages/splash_screen.dart';
 import 'package:learnsmart/pages/learning_modules_screen.dart';
 import 'package:learnsmart/pages/user_info_screen.dart';
+import 'package:learnsmart/pages/animation_screen.dart';
+
+//import 'package:learnsmart/pages/avatar_screen.dart';
 // Import the ChildInfoPage
 
 // Import your firebase options file if used
@@ -45,6 +51,10 @@ class MyApp extends StatelessWidget {
         '/splashscreen': (context) => const SplashScreen(),
         '/courseoption': (context) => const CourseOption(),
         '/learning_modules': (context) => LearningModulesScreen(),
+        '/avatar': (context) => AvatarScreen(),
+        '/animation': (context) => AnimationScreen(),
+        '/chatbot': (context) => ChatbotScreen(),
+        '/chatscreen': (context) => ConversationScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/child_info') {

@@ -14,7 +14,7 @@ class LessonContentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Lesson Content')),
+      appBar: AppBar(title: const Text('Lesson Content')),
       body: StreamBuilder<DocumentSnapshot>(
         stream: _firestore
             .collection('modules')
@@ -24,11 +24,11 @@ class LessonContentScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text('No content available'));
+            return const Center(child: Text('No content available'));
           }
 
           final lessonData = snapshot.data!.data() as Map<String, dynamic>?;
@@ -36,7 +36,7 @@ class LessonContentScreen extends StatelessWidget {
           // Check if lessonData is null
           if (lessonData == null) {
             print('Lesson content data is null for lessonId: $lessonId');
-            return Center(child: Text('No lesson data found'));
+            return const Center(child: Text('No lesson data found'));
           }
 
           final content = lessonData['content'] as List<dynamic>? ?? [];
@@ -51,7 +51,7 @@ class LessonContentScreen extends StatelessWidget {
                 // Check if item is null
                 if (item == null) {
                   print('Content item is null at index: $index');
-                  return ListTile(
+                  return const ListTile(
                     title: Text('Unknown Content'),
                     subtitle: Text('Data not available'),
                   );
@@ -60,7 +60,7 @@ class LessonContentScreen extends StatelessWidget {
                 if (item['type'] == 'audio') {
                   return ListTile(
                     title: Text(item['description'] ?? 'No description'),
-                    trailing: Icon(Icons.audiotrack),
+                    trailing: const Icon(Icons.audiotrack),
                     onTap: () {
                       // Play audio logic
                     },
@@ -88,7 +88,7 @@ class LessonContentScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Text('Take Quiz'),
+                  child: const Text('Take Quiz'),
                 );
               }
               return Container();

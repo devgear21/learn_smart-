@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class QuizScreen extends StatefulWidget {
   final Map<String, dynamic> quiz;
 
-  QuizScreen({required this.quiz});
+  const QuizScreen({super.key, required this.quiz});
 
   @override
   _QuizScreenState createState() => _QuizScreenState();
@@ -19,7 +19,7 @@ class _QuizScreenState extends State<QuizScreen> {
     final question = questions[_currentQuestionIndex] as Map<String, dynamic>;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Quiz')),
+      appBar: AppBar(title: const Text('Quiz')),
       body: Column(
         children: [
           Padding(
@@ -55,7 +55,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 Navigator.pop(context);
               }
             },
-            child: Text('Next'),
+            child: const Text('Next'),
           ),
         ],
       ),

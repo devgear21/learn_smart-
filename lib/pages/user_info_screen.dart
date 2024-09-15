@@ -9,7 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 class ChildInfoPage extends StatefulWidget {
   final String userId;
 
-  const ChildInfoPage({Key? key, required this.userId}) : super(key: key);
+  const ChildInfoPage({super.key, required this.userId});
 
   @override
   _ChildInfoPageState createState() => _ChildInfoPageState();
@@ -78,7 +78,7 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
       final status = await Permission.camera.request();
       if (!status.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
               content: Text('Camera permission is required to take a photo')),
         );
         return;
@@ -89,7 +89,7 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
       final status = await Permission.photos.request();
       if (!status.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
               content:
                   Text('Gallery permission is required to select a photo')),
         );
@@ -367,6 +367,12 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveInfo,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
                 child: _isLoading
                     ? const CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -378,12 +384,6 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
               ),
             ],
           ),

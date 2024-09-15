@@ -101,7 +101,7 @@ class _LoginState extends State<Login> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Full-width image
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Image.asset(
                 'assets/images/login_illustration.png', // Replace with your image path
