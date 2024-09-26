@@ -1,189 +1,152 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_tts/flutter_tts.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'dart:io';
+import 'package:video_player/video_player.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class ConversationScreen extends StatefulWidget {
+class ConversationPage extends StatefulWidget {
+  const ConversationPage({super.key});
+
   @override
-  _ConversationScreenState createState() => _ConversationScreenState();
+  _ConversationPageState createState() => _ConversationPageState();
 }
 
-class _ConversationScreenState extends State<ConversationScreen> {
+class _ConversationPageState extends State<ConversationPage> {
+  final TextEditingController _controller = TextEditingController();
   String _response = '';
-  List<Map<String, String>> messages = []; // Stores user and bot messages
+  String _videoUrl = '';
+  VideoPlayerController? _videoController;
+  bool _isLoading = false;
 
-  final String apiUrl =
-      'https://63d6-35-197-142-72.ngrok-free.app/generate-response';
-
-  FlutterTts flutterTts = FlutterTts();
-  stt.SpeechToText _speechToText = stt.SpeechToText();
-  bool _isListening = false;
-  String _voiceInput = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeSpeech();
-  }
-
-  Future<void> _initializeSpeech() async {
-    bool available = await _speechToText.initialize();
-    if (!available) {
-      print("Speech-to-Text is not available");
-    }
-  }
-
-  Future<void> sendMessage(String userInput) async {
-    if (userInput.isEmpty) return;
-
+  // Function to send the message to FastAPI server and get the response
+  // Function to send the message to FastAPI server and get the response
+  Future<void> _sendMessage(String userInput) async {
     setState(() {
-      messages.add({"role": "user", "content": userInput});
+      _isLoading = true;
     });
 
+    const String serverUrl =
+        "https://1fba-35-197-131-157.ngrok-free.app/generate-response"; // Replace with your ngrok URL
+
+    final Map<String, dynamic> body = {
+      'user_input': userInput,
+    };
+
     try {
-      var response = await http.post(
-        Uri.parse(apiUrl),
+      final response = await http.post(
+        Uri.parse('$serverUrl/generate-response'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"user_input": userInput}),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(response.body);
+        final responseData = jsonDecode(response.body);
         setState(() {
-          _response = jsonResponse['response'];
-          messages.add({"role": "bot", "content": _response});
+          _response = responseData['response'];
+          _videoUrl = responseData['video_url'];
         });
 
-        // Speak out the bot response
-        await _speak(_response);
+        await _loadAndPlayVideo(_videoUrl);
       } else {
         setState(() {
-          _response = 'Error: ${response.statusCode} - ${response.body}';
+          _response = "Error: ${response.statusCode}";
         });
       }
     } catch (e) {
       setState(() {
-        _response = 'Failed to connect: $e';
+        _response = "Failed to get response: $e";
       });
-    }
-  }
-
-  // Method to convert text to speech
-  Future<void> _speak(String text) async {
-    await flutterTts.speak(text);
-  }
-
-  // Method to listen for speech input and convert to text
-  void _startListening() async {
-    bool available = await _speechToText.initialize();
-    if (available) {
+    } finally {
       setState(() {
-        _isListening = true;
+        _isLoading = false;
       });
-      _speechToText.listen(onResult: (result) {
-        setState(() {
-          _voiceInput = result.recognizedWords;
-          print("Voice Input: $_voiceInput"); // Debugging line
-        });
-        sendMessage(_voiceInput); // Automatically send the recognized speech
-      });
-    } else {
-      print("Speech-to-Text initialization failed"); // Debugging line
     }
   }
 
-  void _stopListening() {
-    setState(() {
-      _isListening = false;
-    });
-    _speechToText.stop();
+  // Function to load and play the lipsync video
+  Future<void> _loadAndPlayVideo(String videoUrl) async {
+    final status = await Permission.storage.request();
+    if (status.isGranted) {
+      final tempDir = await getTemporaryDirectory();
+      final filePath = '${tempDir.path}/lipsync_video.mp4';
+
+      try {
+        final response = await http.get(Uri.parse(videoUrl));
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        _videoController = VideoPlayerController.file(file)
+          ..initialize().then((_) {
+            setState(() {});
+            _videoController!.play();
+          });
+      } catch (e) {
+        setState(() {
+          _response = "Failed to load video: $e";
+        });
+      }
+    } else {
+      setState(() {
+        _response = "Storage permission denied";
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _videoController?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ChatBuddy'),
-        backgroundColor: Colors.deepPurpleAccent,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(Icons.account_circle, size: 30),
-          ),
-        ],
+        title: const Text("Conversation with Avatar"),
       ),
-      body: Stack(
-        children: [
-          // Background design from the image
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(
-                    'assets/images/background.jpg'), // Your background image
-                fit: BoxFit.cover,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                labelText: 'Enter your message',
+                border: OutlineInputBorder(),
               ),
             ),
-          ),
-          Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.all(16.0),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isUser = message['role'] == 'user';
-                    return Align(
-                      alignment:
-                          isUser ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                        margin: EdgeInsets.symmetric(vertical: 5),
-                        constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.7),
-                        decoration: BoxDecoration(
-                          color: isUser ? Colors.lightBlueAccent : Colors.white,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15),
-                            topRight: Radius.circular(15),
-                            bottomLeft:
-                                isUser ? Radius.circular(15) : Radius.zero,
-                            bottomRight:
-                                isUser ? Radius.zero : Radius.circular(15),
-                          ),
-                        ),
-                        child: Text(
-                          message['content']!,
-                          style: TextStyle(
-                            color: isUser ? Colors.white : Colors.black87,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      final userInput = _controller.text;
+                      if (userInput.isNotEmpty) {
+                        _sendMessage(userInput);
+                      }
+                    },
+              child: const Text('Send'),
+            ),
+            const SizedBox(height: 20),
+            if (_isLoading)
+              const CircularProgressIndicator()
+            else if (_response.isNotEmpty)
+              Text(
+                _response,
+                style: const TextStyle(fontSize: 16),
               ),
-              // Speak button centered in the middle of the screen
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: FloatingActionButton(
-                    onPressed: _isListening ? _stopListening : _startListening,
-                    backgroundColor: Colors.green,
-                    child: Icon(
-                      _isListening ? Icons.mic : Icons.record_voice_over,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+            const SizedBox(height: 20),
+            if (_videoController != null &&
+                _videoController!.value.isInitialized)
+              AspectRatio(
+                aspectRatio: _videoController!.value.aspectRatio,
+                child: VideoPlayer(_videoController!),
               ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

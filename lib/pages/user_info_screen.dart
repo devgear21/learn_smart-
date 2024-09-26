@@ -1,10 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 class ChildInfoPage extends StatefulWidget {
   final String userId;
@@ -23,8 +19,8 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
   String? _learningPreference;
   bool _dyslexia = false;
   bool _asd = false;
-  File? _image;
   bool _isLoading = false;
+  bool _isPasswordVisible = false; // Add this for password visibility toggle
 
   Future<void> _saveInfo() async {
     if (_formKey.currentState!.validate()) {
@@ -32,25 +28,7 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
         _isLoading = true;
       });
 
-      String? imageUrl;
-
-      // Upload image to Firebase Storage if an image is selected
-      if (_image != null) {
-        try {
-          final storageRef = FirebaseStorage.instance.ref().child(
-              'child_images/${widget.userId}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-          final uploadTask = storageRef.putFile(_image!);
-          final snapshot = await uploadTask.whenComplete(() => null);
-          imageUrl = await snapshot.ref.getDownloadURL();
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Image upload failed: $e')),
-          );
-        }
-      }
-
-      // Save information to Firestore, including image URL if available
+      // Save information to Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.userId)
@@ -61,8 +39,7 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
         'dyslexia': _dyslexia,
         'asd': _asd,
         'parentalLockPassword': _passwordController.text,
-        'imageUrl': imageUrl, // Save the image URL
-        'onboardingComplete': false,
+        //'onboardingComplete': false,
       });
 
       setState(() {
@@ -70,40 +47,6 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
       });
 
       Navigator.pushReplacementNamed(context, '/onboarding1');
-    }
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    if (source == ImageSource.camera) {
-      final status = await Permission.camera.request();
-      if (!status.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Camera permission is required to take a photo')),
-        );
-        return;
-      }
-    }
-
-    if (source == ImageSource.gallery) {
-      final status = await Permission.photos.request();
-      if (!status.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('Gallery permission is required to select a photo')),
-        );
-        return;
-      }
-    }
-
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedImage = await picker.pickImage(source: source);
-
-    if (pickedImage != null) {
-      setState(() {
-        _image = File(pickedImage.path);
-      });
     }
   }
 
@@ -182,94 +125,6 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 },
               ),
               const SizedBox(height: 20),
-              _image == null
-                  ? GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SafeArea(
-                              child: Wrap(
-                                children: [
-                                  ListTile(
-                                    leading: const Icon(Icons.photo_library),
-                                    title: const Text('Gallery'),
-                                    onTap: () {
-                                      _pickImage(ImageSource.gallery);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(Icons.photo_camera),
-                                    title: const Text('Camera'),
-                                    onTap: () {
-                                      _pickImage(ImageSource.camera);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        height: 150,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.add_a_photo,
-                          color: Colors.grey,
-                          size: 50,
-                        ),
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SafeArea(
-                              child: Wrap(
-                                children: [
-                                  ListTile(
-                                    leading: const Icon(Icons.photo_library),
-                                    title: const Text('Gallery'),
-                                    onTap: () {
-                                      _pickImage(ImageSource.gallery);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(Icons.photo_camera),
-                                    title: const Text('Camera'),
-                                    onTap: () {
-                                      _pickImage(ImageSource.camera);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        height: 150,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: FileImage(_image!),
-                            fit: BoxFit.cover,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-              const SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 value: _learningPreference,
                 decoration: InputDecoration(
@@ -309,6 +164,8 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
               const SizedBox(height: 20),
               TextFormField(
                 controller: _passwordController,
+                obscureText:
+                    !_isPasswordVisible, // Update this for visibility toggle
                 decoration: InputDecoration(
                   labelText: "Set Parental Lock Password",
                   labelStyle: GoogleFonts.poppins(
@@ -321,8 +178,19 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                     borderRadius: BorderRadius.circular(8.0),
                     borderSide: BorderSide(color: Colors.grey[400]!),
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please set a parental lock password';

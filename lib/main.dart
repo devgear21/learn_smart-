@@ -47,14 +47,14 @@ class MyApp extends StatelessWidget {
         '/onboarding1': (context) => const OnBoarding1(),
         '/onboarding2': (context) => const OnBoarding2(),
         '/onboarding3': (context) => const OnBoarding3(),
-        '/homepage': (context) => HomePage(),
+        '/homepage': (context) => const HomePage(),
         '/splashscreen': (context) => const SplashScreen(),
         '/courseoption': (context) => const CourseOption(),
         '/learning_modules': (context) => LearningModulesScreen(),
-        '/avatar': (context) => AvatarScreen(),
-        '/animation': (context) => AnimationScreen(),
+        '/avatar': (context) => const AvatarScreen(),
+        '/animation': (context) => const AnimationScreen(),
         '/chatbot': (context) => ChatbotScreen(),
-        '/chatscreen': (context) => ConversationScreen(),
+        '/chatscreen': (context) => ConversationPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/child_info') {

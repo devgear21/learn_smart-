@@ -11,10 +11,13 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  string_similarity: ^2.0.0
   flutter_svg: ^2.0.10+1
   speech_to_text: ^7.0.0
   flutter_tts: ^3.5.0
   http: ^1.2.2
+  video_player: ^2.5.1  # Add this for video playback
+  path_provider: ^2.0.11  # Add this for accessing file storage
   google_fonts: ^5.1.0
   firebase_core: ^3.2.0
   firebase_auth: ^5.1.2

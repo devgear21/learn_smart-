@@ -3,12 +3,14 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ChatbotScreen extends StatefulWidget {
+  const ChatbotScreen({super.key});
+
   @override
   _ChatbotScreenState createState() => _ChatbotScreenState();
 }
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   String _response = '';
   bool isLoading = false; // To show a loading indicator during API request
   List<Map<String, String>> messages = []; // Stores user and bot messages
@@ -83,11 +85,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ChatBuddy'),
-        backgroundColor: Colors.deepPurpleAccent,
-        actions: [
+        title: const Text('ChatBuddy'),
+        backgroundColor: Colors.blueAccent,
+        actions: const [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8.0),
             child: Icon(Icons.account_circle, size: 30),
           ),
         ],
@@ -96,7 +98,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         children: [
           // Background design from the image
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage(
                     'assets/images/background.jpg'), // Your background image
@@ -108,7 +110,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             children: [
               Expanded(
                 child: ListView.builder(
-                  padding: EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16.0),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
@@ -117,20 +119,22 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                       alignment:
                           isUser ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                        margin: EdgeInsets.symmetric(vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        margin: const EdgeInsets.symmetric(vertical: 5),
                         constraints: BoxConstraints(
                             maxWidth: MediaQuery.of(context).size.width * 0.7),
                         decoration: BoxDecoration(
                           color: isUser ? Colors.lightBlueAccent : Colors.white,
                           borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15),
-                            topRight: Radius.circular(15),
-                            bottomLeft:
-                                isUser ? Radius.circular(15) : Radius.zero,
-                            bottomRight:
-                                isUser ? Radius.zero : Radius.circular(15),
+                            topLeft: const Radius.circular(15),
+                            topRight: const Radius.circular(15),
+                            bottomLeft: isUser
+                                ? const Radius.circular(15)
+                                : Radius.zero,
+                            bottomRight: isUser
+                                ? Radius.zero
+                                : const Radius.circular(15),
                           ),
                         ),
                         child: Text(
@@ -146,8 +150,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 ),
               ),
               if (isLoading)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
                   child: CircularProgressIndicator(),
                 ),
               Padding(
@@ -155,7 +159,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.mic, color: Colors.deepPurpleAccent),
+                      icon: const Icon(Icons.mic, color: Colors.blueAccent),
                       onPressed: () {
                         // Add microphone functionality if needed
                       },
@@ -171,19 +175,19 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                             borderRadius: BorderRadius.circular(30.0),
                             borderSide: BorderSide.none,
                           ),
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: const EdgeInsets.symmetric(
                               vertical: 12, horizontal: 20),
                         ),
                       ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     FloatingActionButton(
                       onPressed: () {
                         sendMessage(_controller.text);
                         _controller.clear();
                       },
-                      backgroundColor: Colors.deepPurpleAccent,
-                      child: Icon(Icons.send, color: Colors.white),
+                      backgroundColor: Colors.blueAccent,
+                      child: const Icon(Icons.send, color: Colors.white),
                     ),
                   ],
                 ),

@@ -6,7 +6,7 @@ import 'package:learnsmart/pages/chatbot_screen.dart';
 import 'package:learnsmart/pages/conversation.dart';
 import 'package:learnsmart/pages/course_option.dart';
 import 'package:learnsmart/pages/progress_track.dart';
-//import 'package:learnsmart/pages/avatar_screen.dart';
+import 'package:string_similarity/string_similarity.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +20,14 @@ class _HomePageState extends State<HomePage> {
   String? userEmail;
   String? profileImageUrl;
   int _selectedIndex = 0;
+  String searchQuery = '';
+  final TextEditingController searchController = TextEditingController();
+  List<Map<String, String>> categories = [
+    {'title': 'Courses', 'subtitle': 'Explore Learning'},
+    {'title': 'ChatBuddy', 'subtitle': 'Interact with AI'},
+    {'title': 'FaceBuddy', 'subtitle': 'Talk to your Avatar'},
+    {'title': 'Rewards', 'subtitle': 'See your trophies!'},
+  ];
 
   @override
   void initState() {
@@ -138,6 +146,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Search logic
+  List<Map<String, String>> _getSearchResults(String query) {
+    if (query.isEmpty) return categories;
+    return categories
+        .where((category) =>
+            category['title']!.toLowerCase().contains(query.toLowerCase()) ||
+            category['title']!.toLowerCase().similarityTo(query.toLowerCase()) >
+                0.4)
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
@@ -176,11 +195,17 @@ class _HomePageState extends State<HomePage> {
       body: Padding(
         padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.04, vertical: screenHeight * 0.02),
-        child: ListView(
+        child: Column(
           children: [
             SizedBox(
               height: screenHeight * 0.06,
               child: TextField(
+                controller: searchController,
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value;
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Search your topics',
                   filled: true,
@@ -194,99 +219,55 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Explore categories',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: screenWidth < 600 ? 2 : 4,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: screenWidth < 600 ? 3 / 2 : 4 / 3,
                 ),
-                GestureDetector(
-                  onTap: () {
-                    // Handle 'See all' tap
-                  },
-                  child: const Text(
-                    'See all',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Color.fromARGB(255, 33, 150, 243),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: screenWidth < 600 ? 2 : 4,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: screenWidth < 600 ? 3 / 2 : 4 / 3,
+                itemCount: _getSearchResults(searchQuery).length,
+                itemBuilder: (context, index) {
+                  final result = _getSearchResults(searchQuery)[index];
+                  return CategoryCard(
+                    category: result['title']!,
+                    courseCount: result['subtitle']!,
+                    color: const Color.fromARGB(255, 33, 150, 243),
+                    onTap: () {
+                      switch (result['title']) {
+                        case 'Courses':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CourseOption(),
+                            ),
+                          );
+                          break;
+                        case 'ChatBuddy':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ChatbotScreen(),
+                            ),
+                          );
+                          break;
+                        case 'FaceBuddy':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ConversationPage(),
+                            ),
+                          );
+                          break;
+                        case 'Rewards':
+                          // Add functionality for rewards
+                          break;
+                      }
+                    },
+                  );
+                },
               ),
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                switch (index) {
-                  case 0:
-                    return CategoryCard(
-                      category: 'Courses',
-                      courseCount: 'Explore Learning',
-                      color: const Color.fromARGB(255, 33, 150, 243),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CourseOption(),
-                          ),
-                        );
-                      },
-                    );
-                  case 1:
-                    return CategoryCard(
-                      category: 'ChatBuddy',
-                      courseCount: 'Interact with AI',
-                      color: const Color.fromARGB(255, 33, 150, 243),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatbotScreen(),
-                            ));
-                        // Add navigation or functionality for ChatBuddy
-                      },
-                    );
-                  case 2:
-                    return CategoryCard(
-                      category: 'FaceBuddy',
-                      courseCount: 'Talk to your Avatar',
-                      color: const Color.fromARGB(255, 33, 150, 243),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ConversationScreen(),
-                            ));
-                        // Add navigation or functionality for FaceBuddy
-                      },
-                    );
-                  case 3:
-                    return CategoryCard(
-                      category: 'Rewards',
-                      courseCount: 'See your trophies!',
-                      color: const Color.fromARGB(255, 33, 150, 243),
-                      onTap: () {
-                        // Add navigation or functionality for Rewards
-                      },
-                    );
-                  default:
-                    return const SizedBox.shrink();
-                }
-              },
             ),
           ],
         ),
@@ -341,40 +322,68 @@ class CategoryCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(
-            vertical: screenHeight * 0.02, horizontal: screenWidth * 0.04),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(15),
+      child: Card(
+        elevation: 6, // Adds a subtle shadow for better visual separation
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Rounded corners
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                category,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: screenWidth * 0.05,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+        color: color, // Keeps the original color
+        child: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.symmetric(
+                vertical: screenHeight * 0.03, horizontal: screenWidth * 0.04),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20), // Matches card rounding
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _getCategoryIcon(), // Add an icon relevant to the category
+                  size: screenWidth * 0.12,
+                  color: Colors.white.withOpacity(0.8),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                courseCount,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: screenWidth * 0.03,
-                  color: Colors.grey[200],
+                const SizedBox(height: 10),
+                Text(
+                  category,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: screenWidth * 0.05, // Make category name larger
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8), // Spacing between text
+                Text(
+                  courseCount,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize:
+                        screenWidth * 0.035, // Smaller text for subheading
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  IconData _getCategoryIcon() {
+    // Assign an icon based on the category for better UI clarity
+    switch (category) {
+      case 'Courses':
+        return Icons.school;
+      case 'ChatBuddy':
+        return Icons.chat;
+      case 'FaceBuddy':
+        return Icons.face;
+      case 'Rewards':
+        return Icons.emoji_events;
+      default:
+        return Icons.category;
+    }
   }
 }

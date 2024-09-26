@@ -72,7 +72,7 @@ class _LoginState extends State<Login> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
