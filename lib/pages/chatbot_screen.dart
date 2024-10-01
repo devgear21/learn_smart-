@@ -16,7 +16,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   List<Map<String, String>> messages = []; // Stores user and bot messages
 
   final String apiUrl =
-      'https://7ba1-34-141-140-22.ngrok-free.app/generate-response'; // Replace with your API URL
+      'https://d5a3-34-125-171-62.ngrok-free.app/generate-response'; // Replace with your API URL
 
   // Function to send the user's message to the chatbot and get the response
   Future<void> sendMessage(String userInput) async {

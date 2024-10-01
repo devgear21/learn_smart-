@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:learnsmart/pages/chatbot_screen.dart';
-import 'package:learnsmart/pages/conversation.dart';
+import 'package:learnsmart/pages/chat_screen.dart';
 import 'package:learnsmart/pages/course_option.dart';
 import 'package:learnsmart/pages/progress_track.dart';
 import 'package:string_similarity/string_similarity.dart';
@@ -256,9 +256,10 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ConversationPage(),
+                              builder: (context) => const ChatScreen(),
                             ),
                           );
+
                           break;
                         case 'Rewards':
                           // Add functionality for rewards

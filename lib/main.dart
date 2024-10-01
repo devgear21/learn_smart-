@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // Import Firebase core
+import 'package:firebase_core/firebase_core.dart';
+//import 'package:firebase_auth/firebase_auth.dart';  // Import Firebase Auth
+import 'package:learnsmart/pages/chat_screen.dart';
 import 'package:learnsmart/pages/chatbot_screen.dart';
 import 'package:learnsmart/home_page.dart';
 import 'package:learnsmart/pages/avatar_screen.dart';
-import 'package:learnsmart/pages/conversation.dart';
 import 'package:learnsmart/pages/course_option.dart';
+import 'package:learnsmart/pages/create_avatar.dart';
 import 'package:learnsmart/pages/login.dart';
 import 'package:learnsmart/pages/on_boarding_1.dart';
 import 'package:learnsmart/pages/on_boarding_2.dart';
@@ -14,16 +16,10 @@ import 'package:learnsmart/pages/splash_screen.dart';
 import 'package:learnsmart/pages/learning_modules_screen.dart';
 import 'package:learnsmart/pages/user_info_screen.dart';
 import 'package:learnsmart/pages/animation_screen.dart';
-
-//import 'package:learnsmart/pages/avatar_screen.dart';
-// Import the ChildInfoPage
-
-// Import your firebase options file if used
-// import 'firebase_options.dart';
+//import 'package:learnsmart/pages/child_info_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize Firebase
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
@@ -39,11 +35,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/splashscreen', // Set the initial route
+      initialRoute: '/splashscreen',
       routes: {
-        '/login': (context) => const Login(), // Define the Login page route
-        '/register': (context) =>
-            const Register(), // Define the Register page route
+        '/login': (context) => const Login(),
+        '/register': (context) => const Register(),
         '/onboarding1': (context) => const OnBoarding1(),
         '/onboarding2': (context) => const OnBoarding2(),
         '/onboarding3': (context) => const OnBoarding3(),
@@ -53,8 +48,10 @@ class MyApp extends StatelessWidget {
         '/learning_modules': (context) => LearningModulesScreen(),
         '/avatar': (context) => const AvatarScreen(),
         '/animation': (context) => const AnimationScreen(),
-        '/chatbot': (context) => ChatbotScreen(),
-        '/chatscreen': (context) => ConversationPage(),
+        '/chatbot': (context) => const ChatbotScreen(),
+        '/chatscreen': (context) =>
+            const ChatScreen(), // No need to pass userId manually
+        '/createAvatar': (context) => const CreateAvatar(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/child_info') {
@@ -65,8 +62,7 @@ class MyApp extends StatelessWidget {
             },
           );
         }
-        // Handle other routes here if needed
-        return null; // If no match, return null
+        return null;
       },
     );
   }

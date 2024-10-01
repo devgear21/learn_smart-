@@ -39,14 +39,14 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
         'dyslexia': _dyslexia,
         'asd': _asd,
         'parentalLockPassword': _passwordController.text,
-        //'onboardingComplete': false,
       });
 
       setState(() {
         _isLoading = false;
       });
 
-      Navigator.pushReplacementNamed(context, '/onboarding1');
+      // Navigate to create_avatar.dart page after saving
+      Navigator.pushReplacementNamed(context, '/createAvatar');
     }
   }
 
