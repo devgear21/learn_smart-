@@ -46,11 +46,11 @@ class _CreateAvatarState extends State<CreateAvatar> {
 
     // Create the prompt by combining selected options, ensuring the avatar looks like a virtual assistant
     String prompt =
-        'A virtual assistant that is ${selectedGender ?? 'a person'} with ${selectedHair ?? 'any'} hair that is ${selectedHairColor ?? 'any color'} and has ${selectedSkinTone ?? 'any'} skin tone. Image should be high quality';
+        'A high-definition virtual assistant that is ${selectedGender ?? 'a person'} with ${selectedHair ?? 'any'} hair that is ${selectedHairColor ?? 'any color'} and has ${selectedSkinTone ?? 'any'} skin tone. The image should be clear, in ultra HD resolution, with distinct facial features and precise details to ensure easy lip sync.';
 
     try {
       var response = await http.post(
-        Uri.parse('https://e89a-35-204-106-46.ngrok-free.app/generate_image'),
+        Uri.parse('https://3d59-35-204-27-155.ngrok-free.app/generate_image'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"prompt": prompt}),
       );

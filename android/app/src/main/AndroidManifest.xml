@@ -9,12 +9,14 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:label="learnsmart"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/LaunchTheme">
+        
         
         <activity
             android:name=".MainActivity"
@@ -42,4 +44,3 @@
             android:value="2" />
     </application>
 </manifest>    
-  

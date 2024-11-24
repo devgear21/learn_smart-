@@ -79,7 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'https://4ab0-34-125-101-253.ngrok-free.app/process'), // Your FastAPI endpoint
+            'https://5813-34-82-213-37.ngrok-free.app/process'), // Your FastAPI endpoint
       );
       request.fields['user_input'] =
           userInput; // The chatbot's response or user's input

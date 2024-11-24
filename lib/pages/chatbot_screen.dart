@@ -13,10 +13,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _controller = TextEditingController();
   String _response = '';
   bool isLoading = false; // To show a loading indicator during API request
-  List<Map<String, String>> messages = []; // Stores user and bot messages
+  List<Map<String, String?>> messages = []; // Stores user and bot messages
 
   final String apiUrl =
-      'https://d5a3-34-125-171-62.ngrok-free.app/generate-response'; // Replace with your API URL
+      'https://7b89-34-125-140-113.ngrok-free.app/generate-response'; // Replace with your API URL
 
   // Function to send the user's message to the chatbot and get the response
   Future<void> sendMessage(String userInput) async {
@@ -46,8 +46,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
 
-        // Extract the response and remove unnecessary text
+        // Extract the response and optional image
         String botResponse = jsonResponse['response'];
+        String? imageBase64 =
+            jsonResponse['image']; // Get the image if available
 
         // Remove unnecessary parts (anything after ###)
         if (botResponse.contains('###')) {
@@ -56,7 +58,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
         setState(() {
           _response = botResponse;
-          messages.add({"role": "bot", "content": _response});
+          messages.add({
+            "role": "bot",
+            "content": _response,
+            "image": imageBase64, // Add the image to the messages if available
+          });
           isLoading = false;
         });
       } else {
@@ -115,36 +121,55 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   itemBuilder: (context, index) {
                     final message = messages[index];
                     final isUser = message['role'] == 'user';
-                    return Align(
-                      alignment:
-                          isUser ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 16),
-                        margin: const EdgeInsets.symmetric(vertical: 5),
-                        constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.7),
-                        decoration: BoxDecoration(
-                          color: isUser ? Colors.lightBlueAccent : Colors.white,
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(15),
-                            topRight: const Radius.circular(15),
-                            bottomLeft: isUser
-                                ? const Radius.circular(15)
-                                : Radius.zero,
-                            bottomRight: isUser
-                                ? Radius.zero
-                                : const Radius.circular(15),
+
+                    return Column(
+                      crossAxisAlignment: isUser
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      children: [
+                        // Text message
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 16),
+                          margin: const EdgeInsets.symmetric(vertical: 5),
+                          constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.7),
+                          decoration: BoxDecoration(
+                            color:
+                                isUser ? Colors.lightBlueAccent : Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(15),
+                              topRight: const Radius.circular(15),
+                              bottomLeft: isUser
+                                  ? const Radius.circular(15)
+                                  : Radius.zero,
+                              bottomRight: isUser
+                                  ? Radius.zero
+                                  : const Radius.circular(15),
+                            ),
+                          ),
+                          child: Text(
+                            message['content']!,
+                            style: TextStyle(
+                              color: isUser ? Colors.white : Colors.black87,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          message['content']!,
-                          style: TextStyle(
-                            color: isUser ? Colors.white : Colors.black87,
-                            fontSize: 16,
+                        // Display image if available
+                        if (message.containsKey('image') &&
+                            message['image'] != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Image.memory(
+                              base64Decode(message[
+                                  'image']!), // Decode and display the image
+                              width: 200,
+                              height: 200,
+                            ),
                           ),
-                        ),
-                      ),
+                      ],
                     );
                   },
                 ),
