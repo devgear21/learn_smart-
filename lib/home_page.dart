@@ -2,10 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:learnsmart/pages/accessibilty_settings_page.dart';
 import 'package:learnsmart/pages/chatbot_screen.dart';
 import 'package:learnsmart/pages/chat_screen.dart';
 import 'package:learnsmart/pages/course_option.dart';
 import 'package:learnsmart/pages/progress_track.dart';
+import 'package:provider/provider.dart';
+import 'package:learnsmart/accessibility_settings.dart';
 import 'package:string_similarity/string_similarity.dart';
 
 class HomePage extends StatefulWidget {
@@ -159,18 +162,31 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
+    // Accessibility settings
+    final fontFamily = settings.dyslexiaFriendly ? 'OpenDyslexic' : 'Poppins';
+    // ignore: unused_local_variable
+    final textColor = settings.highContrast ? Colors.yellow : Colors.black87;
+
     final double screenHeight = MediaQuery.of(context).size.height;
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: settings.highContrast
+          ? Colors.black
+          : Colors.white, // Background color
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 33, 150, 243),
+        backgroundColor: settings.highContrast
+            ? Colors.black
+            : const Color.fromARGB(255, 33, 150, 243),
         title: Text(
           childName != null ? 'Welcome, $childName' : 'Welcome',
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
+            fontFamily: fontFamily,
+            color: settings.highContrast ? Colors.yellow : Colors.white,
           ),
         ),
         actions: [
@@ -208,8 +224,12 @@ class _HomePageState extends State<HomePage> {
                 },
                 decoration: InputDecoration(
                   hintText: 'Search your topics',
+                  hintStyle: TextStyle(
+                    fontFamily: fontFamily,
+                  ),
                   filled: true,
-                  fillColor: Colors.grey[200],
+                  fillColor:
+                      settings.highContrast ? Colors.black : Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -220,57 +240,69 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: screenWidth < 600 ? 2 : 4,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: screenWidth < 600 ? 3 / 2 : 4 / 3,
-                ),
+              child: ListView.builder(
                 itemCount: _getSearchResults(searchQuery).length,
                 itemBuilder: (context, index) {
                   final result = _getSearchResults(searchQuery)[index];
-                  return CategoryCard(
-                    category: result['title']!,
-                    courseCount: result['subtitle']!,
-                    color: const Color.fromARGB(255, 33, 150, 243),
-                    onTap: () {
-                      switch (result['title']) {
-                        case 'Courses':
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CourseOption(),
-                            ),
-                          );
-                          break;
-                        case 'ChatBuddy':
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ChatbotScreen(),
-                            ),
-                          );
-                          break;
-                        case 'FaceBuddy':
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ChatScreen(),
-                            ),
-                          );
-
-                          break;
-                        case 'Rewards':
-                          // Add functionality for rewards
-                          break;
-                      }
-                    },
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: CategoryCard(
+                      category: result['title']!,
+                      courseCount: result['subtitle']!,
+                      color: const Color.fromARGB(255, 33, 150, 243),
+                      onTap: () {
+                        switch (result['title']) {
+                          case 'Courses':
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CourseOption(),
+                              ),
+                            );
+                            break;
+                          case 'ChatBuddy':
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ChatbotScreen(),
+                              ),
+                            );
+                            break;
+                          case 'FaceBuddy':
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ChatScreen(),
+                              ),
+                            );
+                            break;
+                          case 'Rewards':
+                            // Add functionality for rewards
+                            break;
+                        }
+                      },
+                    ),
                   );
                 },
               ),
             ),
           ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const AccessibilitySettingsPage()),
+          );
+        },
+        backgroundColor: settings.highContrast
+            ? Colors.black
+            : const Color.fromARGB(255, 33, 150, 243),
+        child: Icon(
+          Icons.settings_accessibility,
+          color: settings.highContrast ? Colors.yellow : Colors.white,
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -319,53 +351,48 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
 
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        elevation: 6, // Adds a subtle shadow for better visual separation
+        elevation: 6,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20), // Rounded corners
+          borderRadius: BorderRadius.circular(20),
         ),
-        color: color, // Keeps the original color
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                vertical: screenHeight * 0.03, horizontal: screenWidth * 0.04),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20), // Matches card rounding
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _getCategoryIcon(), // Add an icon relevant to the category
-                  size: screenWidth * 0.12,
-                  color: Colors.white.withOpacity(0.8),
+        color: color,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(
+                _getCategoryIcon(),
+                size: screenWidth * 0.1,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category,
+                      style: GoogleFonts.poppins(
+                        fontSize: screenWidth * 0.05,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      courseCount,
+                      style: GoogleFonts.poppins(
+                        fontSize: screenWidth * 0.04,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  category,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: screenWidth * 0.05, // Make category name larger
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8), // Spacing between text
-                Text(
-                  courseCount,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize:
-                        screenWidth * 0.035, // Smaller text for subheading
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -373,7 +400,6 @@ class CategoryCard extends StatelessWidget {
   }
 
   IconData _getCategoryIcon() {
-    // Assign an icon based on the category for better UI clarity
     switch (category) {
       case 'Courses':
         return Icons.school;

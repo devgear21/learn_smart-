@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-//import 'package:firebase_auth/firebase_auth.dart';  // Import Firebase Auth
+import 'package:learnsmart/pages/accessibilty_settings_page.dart';
+import 'package:provider/provider.dart'; // Import Provider for global state management
 import 'package:learnsmart/pages/chat_screen.dart';
 import 'package:learnsmart/pages/chatbot_screen.dart';
 import 'package:learnsmart/home_page.dart';
@@ -16,12 +17,21 @@ import 'package:learnsmart/pages/splash_screen.dart';
 import 'package:learnsmart/pages/learning_modules_screen.dart';
 import 'package:learnsmart/pages/user_info_screen.dart';
 import 'package:learnsmart/pages/animation_screen.dart';
-//import 'package:learnsmart/pages/child_info_page.dart';
+import 'accessibility_settings.dart'; // Accessibility settings provider
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => AccessibilitySettings(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -29,11 +39,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(
+        context); // Access accessibility settings
+
     return MaterialApp(
       title: 'LearnSmart App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(
+            fontSize: settings.fontSize,
+            letterSpacing: 0.15,
+            fontFamily:
+                settings.dyslexiaFriendly ? 'OpenDyslexic' : 'DefaultFont',
+          ),
+          bodyMedium: TextStyle(
+            fontSize: settings.fontSize - 2,
+            letterSpacing: 0.15,
+            fontFamily:
+                settings.dyslexiaFriendly ? 'OpenDyslexic' : 'DefaultFont',
+          ),
+        ),
+        colorScheme: ColorScheme.light(
+          primary: settings.highContrast ? Colors.yellow : Colors.blue,
+          background: settings.highContrast ? Colors.black : Colors.white,
+        ),
       ),
       initialRoute: '/splashscreen',
       routes: {
@@ -49,6 +80,9 @@ class MyApp extends StatelessWidget {
         '/avatar': (context) => const AvatarScreen(),
         '/animation': (context) => const AnimationScreen(),
         '/chatbot': (context) => const ChatbotScreen(),
+        '/accessibility_settings': (context) =>
+            const AccessibilitySettingsPage(),
+
         '/chatscreen': (context) =>
             const ChatScreen(), // No need to pass userId manually
         '/createAvatar': (context) => const CreateAvatar(),

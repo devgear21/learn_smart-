@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:learnsmart/pages/accessibilty_settings_page.dart';
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:learnsmart/accessibility_settings.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -12,13 +15,11 @@ class ChatbotScreen extends StatefulWidget {
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _controller = TextEditingController();
   String _response = '';
-  bool isLoading = false; // To show a loading indicator during API request
-  List<Map<String, String?>> messages = []; // Stores user and bot messages
-
+  bool isLoading = false;
+  List<Map<String, String?>> messages = [];
   final String apiUrl =
-      'https://7b89-34-125-140-113.ngrok-free.app/generate-response'; // Replace with your API URL
+      'https://542f-35-187-255-30.ngrok-free.app/generate-response';
 
-  // Function to send the user's message to the chatbot and get the response
   Future<void> sendMessage(String userInput) async {
     if (userInput.isEmpty) return;
 
@@ -45,13 +46,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
-
-        // Extract the response and optional image
         String botResponse = jsonResponse['response'];
-        String? imageBase64 =
-            jsonResponse['image']; // Get the image if available
+        String? imageBase64 = jsonResponse['image'];
 
-        // Remove unnecessary parts (anything after ###)
         if (botResponse.contains('###')) {
           botResponse = botResponse.split('###')[0].trim();
         }
@@ -61,7 +58,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           messages.add({
             "role": "bot",
             "content": _response,
-            "image": imageBase64, // Add the image to the messages if available
+            "image": imageBase64,
           });
           isLoading = false;
         });
@@ -89,10 +86,25 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
+    // Accessibility settings
+    final fontFamily = settings.dyslexiaFriendly ? 'OpenDyslexic' : 'Poppins';
+    final textColor = settings.highContrast ? Colors.yellow : Colors.black87;
+    final buttonBackgroundColor =
+        settings.highContrast ? Colors.black : Colors.blueAccent;
+    final backgroundColor = settings.highContrast ? Colors.black : Colors.white;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ChatBuddy'),
-        backgroundColor: Colors.blueAccent,
+        title: Text(
+          'ChatBuddy',
+          style: TextStyle(
+            fontFamily: fontFamily,
+            color: textColor,
+          ),
+        ),
+        backgroundColor: buttonBackgroundColor,
         actions: const [
           Padding(
             padding: EdgeInsets.all(8.0),
@@ -100,126 +112,128 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          // Background design from the image
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(
-                    'assets/images/background.jpg'), // Your background image
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isUser = message['role'] == 'user';
+      body: Container(
+        color: backgroundColor, // Dynamically set background color
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final message = messages[index];
+                  final isUser = message['role'] == 'user';
 
-                    return Column(
-                      crossAxisAlignment: isUser
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        // Text message
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 16),
-                          margin: const EdgeInsets.symmetric(vertical: 5),
-                          constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.7),
-                          decoration: BoxDecoration(
-                            color:
-                                isUser ? Colors.lightBlueAccent : Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(15),
-                              topRight: const Radius.circular(15),
-                              bottomLeft: isUser
-                                  ? const Radius.circular(15)
-                                  : Radius.zero,
-                              bottomRight: isUser
-                                  ? Radius.zero
-                                  : const Radius.circular(15),
-                            ),
-                          ),
-                          child: Text(
-                            message['content']!,
-                            style: TextStyle(
-                              color: isUser ? Colors.white : Colors.black87,
-                              fontSize: 16,
-                            ),
+                  return Column(
+                    crossAxisAlignment: isUser
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        margin: const EdgeInsets.symmetric(vertical: 5),
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.7),
+                        decoration: BoxDecoration(
+                          color: isUser ? Colors.lightBlueAccent : Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(15),
+                            topRight: const Radius.circular(15),
+                            bottomLeft: isUser
+                                ? const Radius.circular(15)
+                                : Radius.zero,
+                            bottomRight: isUser
+                                ? Radius.zero
+                                : const Radius.circular(15),
                           ),
                         ),
-                        // Display image if available
-                        if (message.containsKey('image') &&
-                            message['image'] != null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            child: Image.memory(
-                              base64Decode(message[
-                                  'image']!), // Decode and display the image
-                              width: 200,
-                              height: 200,
-                            ),
+                        child: Text(
+                          message['content']!,
+                          style: TextStyle(
+                            fontFamily: fontFamily,
+                            color: textColor, // Text color changes dynamically
+                            fontSize: settings.fontSize,
                           ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              if (isLoading)
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: CircularProgressIndicator(),
-                ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.mic, color: Colors.blueAccent),
-                      onPressed: () {
-                        // Add microphone functionality if needed
-                      },
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        decoration: InputDecoration(
-                          hintText: 'Type something...',
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 20),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    FloatingActionButton(
-                      onPressed: () {
-                        sendMessage(_controller.text);
-                        _controller.clear();
-                      },
-                      backgroundColor: Colors.blueAccent,
-                      child: const Icon(Icons.send, color: Colors.white),
-                    ),
-                  ],
-                ),
+                      if (message.containsKey('image') &&
+                          message['image'] != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: Image.memory(
+                            base64Decode(message['image']!),
+                            width: 200,
+                            height: 200,
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
-            ],
-          ),
-        ],
+            ),
+            if (isLoading)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.settings_accessibility,
+                      color: buttonBackgroundColor,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const AccessibilitySettingsPage()),
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      style: TextStyle(
+                        fontFamily: fontFamily,
+                        color: textColor, // Adjust typing text color
+                        fontSize: settings.fontSize,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Type something...',
+                        hintStyle: TextStyle(
+                          fontFamily: fontFamily,
+                          color: textColor, // Adjust hint text color
+                        ),
+                        fillColor: Colors.white,
+                        filled: !settings.highContrast,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FloatingActionButton(
+                    onPressed: () {
+                      sendMessage(_controller.text);
+                      _controller.clear();
+                    },
+                    backgroundColor: buttonBackgroundColor,
+                    child: const Icon(Icons.send, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
 name: learnsmart
-description: "A new Flutter project."
+description: "A new Flutter project with accessibility features."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -11,216 +11,43 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  provider: ^6.0.5
   string_similarity: ^2.0.0
   flutter_svg: ^2.0.10+1
   flutter_tts: ^3.5.0
   http: ^1.2.2
-  video_player: ^2.2.10  # Add this for video playback
-  path_provider: ^2.0.11  # Add this for accessing file storage
-  google_fonts: ^5.1.0
-  uuid: ^4.5.1
-  firebase_core: ^3.2.0
-  firebase_auth: ^5.1.2
-  cloud_firestore: ^5.1.0
-  image_picker: ^1.0.0
-  permission_handler: ^11.0.1
-  firebase_storage: ^12.0.0
-  
+  video_player: ^2.2.10  # For video playback
+  path_provider: ^2.0.11  # For accessing file storage
+  google_fonts: ^5.1.0  # To include dynamic Google fonts (if needed)
+  uuid: ^4.5.1  # For generating unique IDs
+  firebase_core: ^3.2.0  # Firebase core integration
+  firebase_auth: ^5.1.2  # Firebase authentication
+  cloud_firestore: ^5.1.0  # Firestore database integration
+  image_picker: ^1.0.0  # For image selection
+  permission_handler: ^11.0.1  # For managing runtime permissions
+  firebase_storage: ^12.0.0  # For Firebase file storage
 
 dev_dependencies:
-  flutterfire_cli: ^1.0.1-dev.2  # Updated version
+  flutterfire_cli: ^1.0.1-dev.2  # Firebase CLI integration
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^4.0.0  # For linting and code analysis
 
 flutter:
   uses-material-design: true
+
+  # Asset directories
   assets:
-  - assets/vectors/wifi_17_x2.svg
-  - assets/vectors/battery_x2.svg
-  - assets/vectors/cellular_connection_8_x2.svg
-  - assets/vectors/battery_5_x2.svg
-  - assets/vectors/group_122_x2.svg
-  - assets/vectors/wifi_12_x2.svg
-  - assets/vectors/cellular_connection_5_x2.svg
-  - assets/images/national_cancer_institute_l_7_en_7_lb_ovc_unsplash_1.png
-  - assets/vectors/wifi_13_x2.svg
-  - assets/vectors/vector_14_x2.svg
-  - assets/vectors/vector_43_x2.svg
-  - assets/vectors/vector_44_x2.svg
-  - assets/vectors/vector_36_x2.svg
-  - assets/vectors/cellular_connection_14_x2.svg
-  - assets/vectors/vector_21_x2.svg
-  - assets/vectors/vector_12_x2.svg
-  - assets/vectors/vector_48_x2.svg
-  - assets/vectors/vector_13_x2.svg
-  - assets/vectors/vector_10_x2.svg
-  - assets/vectors/battery_20_x2.svg
-  - assets/images/national_cancer_institute_l_7_en_7_lb_ovc_unsplash_1.png
-  - assets/vectors/battery_13_x2.svg
-  - assets/vectors/cellular_connection_20_x2.svg
-  - assets/vectors/wifi_18_x2.svg
-  - assets/vectors/slider_indicator_x2.svg
-  - assets/vectors/vector_18_x2.svg
-  - assets/vectors/vector_26_x2.svg
-  - assets/vectors/battery_16_x2.svg
-  - assets/vectors/cellular_connection_7_x2.svg
-  - assets/vectors/vector_53_x2.svg
-  - assets/vectors/vector_39_x2.svg
-  - assets/vectors/vector_47_x2.svg
-  - assets/vectors/vector_33_x2.svg
-  - assets/vectors/bxbx_time_4_x2.svg
-  - assets/vectors/vector_7_x2.svg
-  - assets/vectors/course_preview_1_x2.svg
-  - assets/vectors/vector_56_x2.svg
-  - assets/vectors/wifi_9_x2.svg
-  - assets/vectors/mask_group_x2.svg
-  - assets/vectors/bxbx_time_10_x2.svg
-  - assets/vectors/bxbx_time_7_x2.svg
-  - assets/vectors/vector_8_x2.svg
-  - assets/vectors/bxbx_time_8_x2.svg
-  - assets/vectors/vector_15_x2.svg
-  - assets/vectors/battery_9_x2.svg
-  - assets/vectors/mask_group_8_x2.svg
-  - assets/vectors/wifi_20_x2.svg
-  - assets/vectors/mask_group_6_x2.svg
-  - assets/vectors/bxbx_time_6_x2.svg
-  - assets/vectors/cellular_connection_9_x2.svg
-  - assets/vectors/vector_1_x2.svg
-  - assets/vectors/mask_group_2_x2.svg
-  - assets/vectors/mask_group_5_x2.svg
-  - assets/vectors/bxbx_time_1_x2.svg
-  - assets/vectors/group_123_x2.svg
-  - assets/vectors/cellular_connection_4_x2.svg
-  - assets/vectors/battery_7_x2.svg
-  - assets/vectors/wifi_7_x2.svg
-  - assets/images/national_cancer_institute_l_7_en_7_lb_ovc_unsplash_1.png
-  - assets/vectors/wifi_14_x2.svg
-  - assets/vectors/cellular_connection_12_x2.svg
-  - assets/vectors/bxbx_time_x2.svg
-  - assets/vectors/vector_24_x2.svg
-  - assets/vectors/mask_group_7_x2.svg
-  - assets/vectors/bxbx_time_3_x2.svg
-  - assets/vectors/vector_42_x2.svg
-  - assets/vectors/mask_group_4_x2.svg
-  - assets/vectors/vector_4_x2.svg
-  - assets/vectors/claritynotification_solid_badged_x2.svg
-  - assets/vectors/bxbx_time_2_x2.svg
-  - assets/vectors/vector_49_x2.svg
-  - assets/vectors/battery_19_x2.svg
-  - assets/vectors/mask_group_9_x2.svg
-  - assets/vectors/mask_group_1_x2.svg
-  - assets/vectors/vector_41_x2.svg
-  - assets/vectors/mask_group_3_x2.svg
-  - assets/vectors/vector_17_x2.svg
-  - assets/vectors/bxbx_time_9_x2.svg
-  - assets/vectors/bxbx_time_5_x2.svg
-  - assets/vectors/group_124_x2.svg
-  - assets/vectors/battery_12_x2.svg
-  - assets/vectors/wifi_11_x2.svg
-  - assets/vectors/cellular_connection_13_x2.svg
-  - assets/images/smart_education_logo_vector_340381962.jpeg
-  - assets/vectors/vector_37_x2.svg
-  - assets/vectors/cellular_connection_19_x2.svg
-  - assets/vectors/group_2_x2.svg
-  - assets/vectors/group_6_x2.svg
-  - assets/vectors/wifi_3_x2.svg
-  - assets/vectors/battery_15_x2.svg
-  - assets/images/smart_education_logo_vector_340381962.jpeg
-  - assets/vectors/battery_11_x2.svg
-  - assets/vectors/wifi_8_x2.svg
-  - assets/vectors/cellular_connection_17_x2.svg
-  - assets/vectors/group_x2.svg
-  - assets/vectors/vector_5_x2.svg
-  - assets/vectors/vector_29_x2.svg
-  - assets/vectors/container_x2.svg
-  - assets/vectors/vector_40_x2.svg
-  - assets/images/national_cancer_institute_l_7_en_7_lb_ovc_unsplash_1.png
-  - assets/vectors/vector_x2.svg
-  - assets/vectors/vector_38_x2.svg
-  - assets/vectors/battery_4_x2.svg
-  - assets/vectors/group_4_x2.svg
-  - assets/vectors/vector_9_x2.svg
-  - assets/vectors/vector_11_x2.svg
-  - assets/vectors/vector_52_x2.svg
-  - assets/vectors/vector_25_x2.svg
-  - assets/vectors/wifi_5_x2.svg
-  - assets/vectors/cellular_connection_6_x2.svg
-  - assets/vectors/vector_30_x2.svg
-  - assets/vectors/vector_50_x2.svg
-  - assets/vectors/vector_23_x2.svg
-  - assets/vectors/vector_2_x2.svg
-  - assets/vectors/cellular_connection_11_x2.svg
-  - assets/vectors/undraw_feeling_blue_4_b_7_q_1_x2.svg
-  - assets/vectors/wifi_6_x2.svg
-  - assets/vectors/battery_17_x2.svg
-  - assets/vectors/vector_34_x2.svg
-  - assets/vectors/vector_55_x2.svg
-  - assets/vectors/vector_3_x2.svg
-  - assets/vectors/vector_51_x2.svg
-  - assets/vectors/wifi_1_x2.svg
-  - assets/vectors/battery_3_x2.svg
-  - assets/vectors/vector_54_x2.svg
-  - assets/vectors/course_preview_x2.svg
-  - assets/vectors/vector_28_x2.svg
-  - assets/vectors/vector_32_x2.svg
-  - assets/vectors/cellular_connection_2_x2.svg
-  - assets/vectors/vector_46_x2.svg
-  - assets/images/national_cancer_institute_l_7_en_7_lb_ovc_unsplash_1.png
-  - assets/vectors/battery_14_x2.svg
-  - assets/vectors/wifi_10_x2.svg
-  - assets/vectors/cellular_connection_10_x2.svg
-  - assets/vectors/group_1_x2.svg
-  - assets/vectors/group_5_x2.svg
-  - assets/vectors/vector_35_x2.svg
-  - assets/vectors/cellular_connection_1_x2.svg
-  - assets/vectors/undraw_winners_ao_2_o_1_x2.svg
-  - assets/vectors/battery_2_x2.svg
-  - assets/vectors/vector_22_x2.svg
-  - assets/vectors/bxbxl_instagram_x2.svg
-  - assets/vectors/vector_31_x2.svg
-  - assets/vectors/wifi_2_x2.svg
-  - assets/vectors/vector_6_x2.svg
-  - assets/vectors/wifi_19_x2.svg
-  - assets/vectors/cellular_connection_15_x2.svg
-  - assets/vectors/vector_16_x2.svg
-  - assets/vectors/battery_1_x2.svg
-  - assets/images/smart_education_logo_vector_340381962.jpeg
-  - assets/vectors/battery_10_x2.svg
-  - assets/vectors/wifi_16_x2.svg
-  - assets/vectors/cellular_connection_16_x2.svg
-  - assets/vectors/group_3_x2.svg
-  - assets/vectors/wifi_x2.svg
-  - assets/vectors/cellular_connection_3_x2.svg
-  - assets/vectors/vector_19_x2.svg
-  - assets/vectors/battery_8_x2.svg
-  - assets/images/national_cancer_institute_l_7_en_7_lb_ovc_unsplash_1.png
-  - assets/vectors/battery_18_x2.svg
-  - assets/vectors/notosports_medal_1_x2.svg
-  - assets/vectors/wifi_4_x2.svg
-  - assets/vectors/cellular_connection_18_x2.svg
-  - assets/vectors/notosports_medal_4_x2.svg
-  - assets/vectors/vector_45_x2.svg
-  - assets/vectors/notosports_medal_x2.svg
-  - assets/vectors/notosports_medal_2_x2.svg
-  - assets/vectors/vector_27_x2.svg
-  - assets/vectors/notosports_medal_3_x2.svg
-  - assets/vectors/vector_57_x2.svg
-  - assets/vectors/claritynotification_line_3_x2.svg
-  - assets/vectors/claritynotification_line_x2.svg
-  - assets/vectors/claritynotification_line_2_x2.svg
-  - assets/vectors/claritynotification_line_1_x2.svg
-  - assets/vectors/claritynotification_line_4_x2.svg
-  - assets/vectors/claritynotification_line_5_x2.svg
-  - assets/vectors/battery_6_x2.svg
-  - assets/vectors/vector_20_x2.svg
-  - assets/vectors/cellular_connection_x2.svg
-  - assets/vectors/wifi_15_x2.svg
-  - assets/images/login_illustration.png
-  - assets/images/splash_illustration.png
-  - assets/images/hand.png
-  - assets/images/lips.png
-  - assets/images/eyes_open.png
-  - assets/images/smile.png
-  - assets/images/avatar_base.png
-  - assets/images/background.jpg
+    - assets/fonts/  # Fonts directory
+    - assets/vectors/  # Vectors directory for SVGs
+    - assets/images/  # Images directory
+
+  # Adding custom fonts
+  fonts:
+    - family: OpenDyslexic
+      fonts:
+        - asset: assets/fonts/OpenDyslexic-Regular.otf
+        - asset: assets/fonts/OpenDyslexic-Bold.otf
+        - asset: assets/fonts/OpenDyslexic-Italic.otf
+        - asset: assets/fonts/OpenDyslexic-Bold-Italic.otf
+    

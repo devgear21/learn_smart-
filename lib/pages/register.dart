@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:learnsmart/pages/login.dart';
 import 'package:learnsmart/pages/user_info_screen.dart';
+import 'package:learnsmart/accessibility_settings.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -64,8 +65,10 @@ class _RegisterState extends State<Register> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: settings.highContrast ? Colors.black : Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0),
@@ -74,17 +77,21 @@ class _RegisterState extends State<Register> {
             children: [
               Text(
                 'Sign up',
-                style: GoogleFonts.poppins(
-                  fontSize: 32,
+                style: TextStyle(
+                  fontSize: settings.fontSize + 8,
                   fontWeight: FontWeight.bold,
+                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                  color: settings.highContrast ? Colors.yellow : Colors.black87,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 "Create an account, It's free",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  color: Colors.grey[600],
+                style: TextStyle(
+                  fontSize: settings.fontSize - 2,
+                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                  color:
+                      settings.highContrast ? Colors.yellow : Colors.grey[600],
                 ),
               ),
               const SizedBox(height: 40),
@@ -95,20 +102,37 @@ class _RegisterState extends State<Register> {
                   children: [
                     Text(
                       'Email',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: settings.fontSize,
                         fontWeight: FontWeight.w500,
+                        fontFamily:
+                            settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _emailController,
+                      style: TextStyle(
+                        fontSize: settings.fontSize,
+                        fontFamily:
+                            settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black,
+                      ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 12.0, horizontal: 16.0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: Colors.grey[400]!),
+                          borderSide: BorderSide(
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.grey[400]!,
+                          ),
                         ),
                       ),
                       validator: (value) {
@@ -126,27 +150,47 @@ class _RegisterState extends State<Register> {
                     const SizedBox(height: 20),
                     Text(
                       'Password',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: settings.fontSize,
                         fontWeight: FontWeight.w500,
+                        fontFamily:
+                            settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
+                      style: TextStyle(
+                        fontSize: settings.fontSize,
+                        fontFamily:
+                            settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black,
+                      ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 12.0, horizontal: 16.0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: Colors.grey[400]!),
+                          borderSide: BorderSide(
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.grey[400]!,
+                          ),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off
                                 : Icons.visibility,
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.black54,
                           ),
                           onPressed: _togglePasswordVisibility,
                         ),
@@ -164,27 +208,47 @@ class _RegisterState extends State<Register> {
                     const SizedBox(height: 20),
                     Text(
                       'Confirm Password',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: settings.fontSize,
                         fontWeight: FontWeight.w500,
+                        fontFamily:
+                            settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _confirmPasswordController,
                       obscureText: _obscurePassword,
+                      style: TextStyle(
+                        fontSize: settings.fontSize,
+                        fontFamily:
+                            settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black,
+                      ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 12.0, horizontal: 16.0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(color: Colors.grey[400]!),
+                          borderSide: BorderSide(
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.grey[400]!,
+                          ),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off
                                 : Icons.visibility,
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.black54,
                           ),
                           onPressed: _togglePasswordVisibility,
                         ),
@@ -206,7 +270,9 @@ class _RegisterState extends State<Register> {
                         onPressed: _register,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.blue,
+                          backgroundColor: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -214,8 +280,11 @@ class _RegisterState extends State<Register> {
                         ),
                         child: Text(
                           'Sign up',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
+                          style: TextStyle(
+                            fontSize: settings.fontSize,
+                            fontFamily: settings.dyslexiaFriendly
+                                ? 'OpenDyslexic'
+                                : null,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
@@ -235,16 +304,26 @@ class _RegisterState extends State<Register> {
                         child: RichText(
                           text: TextSpan(
                             text: "Already have an account? ",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[700],
+                            style: TextStyle(
+                              fontSize: settings.fontSize - 2,
+                              fontFamily: settings.dyslexiaFriendly
+                                  ? 'OpenDyslexic'
+                                  : null,
+                              color: settings.highContrast
+                                  ? Colors.yellow
+                                  : Colors.grey[700],
                             ),
                             children: [
                               TextSpan(
                                 text: "Login",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.blue,
+                                style: TextStyle(
+                                  fontSize: settings.fontSize - 2,
+                                  fontFamily: settings.dyslexiaFriendly
+                                      ? 'OpenDyslexic'
+                                      : null,
+                                  color: settings.highContrast
+                                      ? Colors.yellow
+                                      : Colors.blue,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -258,6 +337,17 @@ class _RegisterState extends State<Register> {
               ),
             ],
           ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/accessibility_settings');
+        },
+        backgroundColor:
+            settings.highContrast ? Colors.yellow : Colors.blueAccent,
+        child: Icon(
+          Icons.settings_accessibility,
+          color: settings.highContrast ? Colors.black : Colors.white,
         ),
       ),
     );

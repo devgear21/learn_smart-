@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:learnsmart/home_page.dart';
 import 'package:learnsmart/pages/register.dart';
-//import 'package:learnsmart/pages/home_page.dart';
+import 'package:provider/provider.dart';
+import 'package:learnsmart/accessibility_settings.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -94,8 +94,10 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: settings.highContrast ? Colors.black : Colors.white,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +106,7 @@ class _LoginState extends State<Login> {
             SizedBox(
               width: double.infinity,
               child: Image.asset(
-                'assets/images/login_illustration.png', // Replace with your image path
+                'assets/images/login_illustration.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -116,18 +118,26 @@ class _LoginState extends State<Login> {
                 children: [
                   Text(
                     'Login',
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: settings.fontSize + 8,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      fontFamily:
+                          settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                      color: settings.highContrast
+                          ? Colors.yellow
+                          : Colors.black87, // Yellow for high contrast
                     ),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     'Login to your account',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.black54,
+                    style: TextStyle(
+                      fontSize: settings.fontSize - 2,
+                      fontFamily:
+                          settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                      color: settings.highContrast
+                          ? Colors.yellow
+                          : Colors.black54, // Yellow for high contrast
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -137,13 +147,33 @@ class _LoginState extends State<Login> {
                       children: [
                         TextFormField(
                           controller: _emailController,
+                          style: TextStyle(
+                            fontSize: settings.fontSize - 2,
+                            fontFamily: settings.dyslexiaFriendly
+                                ? 'OpenDyslexic'
+                                : null,
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.black, // Dynamic text color
+                          ),
                           decoration: InputDecoration(
                             labelText: 'Email',
-                            labelStyle:
-                                GoogleFonts.poppins(color: Colors.black54),
+                            labelStyle: TextStyle(
+                              fontSize: settings.fontSize - 2,
+                              fontFamily: settings.dyslexiaFriendly
+                                  ? 'OpenDyslexic'
+                                  : null,
+                              color: settings.highContrast
+                                  ? Colors.yellow
+                                  : Colors.black54, // Dynamic label color
+                            ),
                             border: const OutlineInputBorder(),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blueAccent),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: settings.highContrast
+                                    ? Colors.yellow
+                                    : Colors.blueAccent, // Dynamic border color
+                              ),
                             ),
                           ),
                           keyboardType: TextInputType.emailAddress,
@@ -154,23 +184,46 @@ class _LoginState extends State<Login> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 20),
+
+// Password field
                         TextFormField(
                           controller: _passwordController,
+                          style: TextStyle(
+                            fontSize: settings.fontSize - 2,
+                            fontFamily: settings.dyslexiaFriendly
+                                ? 'OpenDyslexic'
+                                : null,
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.black, // Dynamic text color
+                          ),
                           decoration: InputDecoration(
                             labelText: 'Password',
-                            labelStyle:
-                                GoogleFonts.poppins(color: Colors.black54),
+                            labelStyle: TextStyle(
+                              fontSize: settings.fontSize - 2,
+                              fontFamily: settings.dyslexiaFriendly
+                                  ? 'OpenDyslexic'
+                                  : null,
+                              color: settings.highContrast
+                                  ? Colors.yellow
+                                  : Colors.black54, // Dynamic label color
+                            ),
                             border: const OutlineInputBorder(),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.blueAccent),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: settings.highContrast
+                                    ? Colors.yellow
+                                    : Colors.blueAccent, // Dynamic border color
+                              ),
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility_off
                                     : Icons.visibility,
-                                color: Colors.black54,
+                                color: settings.highContrast
+                                    ? Colors.yellow
+                                    : Colors.black54, // Dynamic icon color
                               ),
                               onPressed: _togglePasswordVisibility,
                             ),
@@ -190,8 +243,15 @@ class _LoginState extends State<Login> {
                             onPressed: _forgotPassword,
                             child: Text(
                               'Forgot password?',
-                              style: GoogleFonts.poppins(
-                                color: Colors.blueAccent,
+                              style: TextStyle(
+                                fontSize: settings.fontSize - 2,
+                                fontFamily: settings.dyslexiaFriendly
+                                    ? 'OpenDyslexic'
+                                    : null,
+                                color: settings.highContrast
+                                    ? Colors.yellow
+                                    : Colors
+                                        .blueAccent, // Yellow for high contrast
                               ),
                             ),
                           ),
@@ -208,8 +268,11 @@ class _LoginState extends State<Login> {
                           ),
                           child: Text(
                             'Login',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
+                            style: TextStyle(
+                              fontSize: settings.fontSize,
+                              fontFamily: settings.dyslexiaFriendly
+                                  ? 'OpenDyslexic'
+                                  : null,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -224,9 +287,13 @@ class _LoginState extends State<Login> {
                       onTap: _register,
                       child: Text(
                         "Don't have an account? Sign up",
-                        style: GoogleFonts.poppins(
-                          color: Colors.blueAccent,
-                          fontSize: 14,
+                        style: TextStyle(
+                          fontSize: settings.fontSize - 2,
+                          fontFamily:
+                              settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.blueAccent, // Yellow for high contrast
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -237,6 +304,13 @@ class _LoginState extends State<Login> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/accessibility_settings');
+        },
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.settings_accessibility),
       ),
     );
   }

@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:learnsmart/accessibility_settings.dart';
 
 class CreateAvatar extends StatefulWidget {
   const CreateAvatar({Key? key}) : super(key: key);
@@ -16,16 +18,14 @@ class CreateAvatar extends StatefulWidget {
 class _CreateAvatarState extends State<CreateAvatar> {
   // ignore: unused_field
   final TextEditingController _promptController = TextEditingController();
-  String? _avatarImage; // To hold the base64 image string
-  bool _isLoading = false; // To show loading state
+  String? _avatarImage;
+  bool _isLoading = false;
 
-  // Dropdown values
   String? selectedHair;
   String? selectedHairColor;
   String? selectedSkinTone;
   String? selectedGender;
 
-  // Dropdown options
   final List<String> hairStyles = [
     'Short',
     'Long',
@@ -37,20 +37,18 @@ class _CreateAvatarState extends State<CreateAvatar> {
   final List<String> skinTones = ['Fair', 'Medium', 'Dark'];
   final List<String> genders = ['Male', 'Female', 'Non-binary'];
 
-  // Function to send the prompt and get avatar
   Future<void> _generateAvatar() async {
     setState(() {
       _isLoading = true;
       _avatarImage = null;
     });
 
-    // Create the prompt by combining selected options, ensuring the avatar looks like a virtual assistant
     String prompt =
         'A high-definition virtual assistant that is ${selectedGender ?? 'a person'} with ${selectedHair ?? 'any'} hair that is ${selectedHairColor ?? 'any color'} and has ${selectedSkinTone ?? 'any'} skin tone. The image should be clear, in ultra HD resolution, with distinct facial features and precise details to ensure easy lip sync.';
 
     try {
       var response = await http.post(
-        Uri.parse('https://3d59-35-204-27-155.ngrok-free.app/generate_image'),
+        Uri.parse('https://0c00-34-125-11-60.ngrok-free.app/generate_image'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"prompt": prompt}),
       );
@@ -58,7 +56,7 @@ class _CreateAvatarState extends State<CreateAvatar> {
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
         setState(() {
-          _avatarImage = responseBody['image']; // Set the base64 image string
+          _avatarImage = responseBody['image'];
         });
       } else {
         print('Error: ${response.statusCode}');
@@ -72,7 +70,6 @@ class _CreateAvatarState extends State<CreateAvatar> {
     }
   }
 
-  // Function to save avatar to Firebase Storage and update Firestore
   Future<void> _saveAvatar() async {
     if (_avatarImage == null) return;
 
@@ -81,31 +78,23 @@ class _CreateAvatarState extends State<CreateAvatar> {
     });
 
     try {
-      // Convert base64 string back to bytes
       Uint8List avatarBytes = base64Decode(_avatarImage!);
 
-      // Get the current user's UID
       User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw 'User not logged in';
-      }
-      String userId = user.uid;
+      if (user == null) throw 'User not logged in';
 
-      // Save the image to Firebase Storage
+      String userId = user.uid;
       String filePath = 'avatars/$userId.png';
       final storageRef = FirebaseStorage.instance.ref().child(filePath);
+
       await storageRef.putData(
           avatarBytes, SettableMetadata(contentType: 'image/png'));
 
-      // Get the download URL
       String downloadUrl = await storageRef.getDownloadURL();
-
-      // Update the user's Firestore document with the image URL
       await FirebaseFirestore.instance.collection('users').doc(userId).update({
         'imageUrl': downloadUrl,
       });
 
-      // Navigate to onboarding1.dart page
       Navigator.pushReplacementNamed(context, '/onboarding1');
     } catch (e) {
       print('Error saving avatar: $e');
@@ -121,10 +110,26 @@ class _CreateAvatarState extends State<CreateAvatar> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Generate Virtual Assistant Avatar'),
-        backgroundColor: const Color.fromARGB(255, 33, 150, 243),
+        title: Text(
+          'Generate Virtual Assistant Avatar',
+          style: settings.dyslexiaFriendly
+              ? TextStyle(
+                  fontSize: settings.fontSize + 2,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenDyslexic',
+                  color: settings.highContrast ? Colors.yellow : Colors.white,
+                )
+              : TextStyle(
+                  fontSize: settings.fontSize + 2,
+                  fontWeight: FontWeight.bold,
+                  color: settings.highContrast ? Colors.yellow : Colors.white,
+                ),
+        ),
+        backgroundColor: settings.highContrast ? Colors.black : Colors.blue,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -132,8 +137,6 @@ class _CreateAvatarState extends State<CreateAvatar> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-
-            // Gender selection card
             _buildDropdownCard(
               title: "Select Gender",
               value: selectedGender,
@@ -143,11 +146,9 @@ class _CreateAvatarState extends State<CreateAvatar> {
                   selectedGender = value;
                 });
               },
+              settings: settings,
             ),
-
             const SizedBox(height: 20),
-
-            // Hair style selection card
             _buildDropdownCard(
               title: "Select Hair Style",
               value: selectedHair,
@@ -157,11 +158,9 @@ class _CreateAvatarState extends State<CreateAvatar> {
                   selectedHair = value;
                 });
               },
+              settings: settings,
             ),
-
             const SizedBox(height: 20),
-
-            // Hair color selection card
             _buildDropdownCard(
               title: "Select Hair Color",
               value: selectedHairColor,
@@ -171,11 +170,9 @@ class _CreateAvatarState extends State<CreateAvatar> {
                   selectedHairColor = value;
                 });
               },
+              settings: settings,
             ),
-
             const SizedBox(height: 20),
-
-            // Skin tone selection card
             _buildDropdownCard(
               title: "Select Skin Tone",
               value: selectedSkinTone,
@@ -185,43 +182,47 @@ class _CreateAvatarState extends State<CreateAvatar> {
                   selectedSkinTone = value;
                 });
               },
+              settings: settings,
             ),
-
             const SizedBox(height: 30),
-
             ElevatedButton(
-              onPressed: () {
-                _generateAvatar(); // Generate avatar based on selected options
-              },
+              onPressed: _generateAvatar,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 33, 150, 243),
+                backgroundColor:
+                    settings.highContrast ? Colors.black : Colors.blue,
                 padding: const EdgeInsets.symmetric(
                     horizontal: 24.0, vertical: 16.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
-                elevation: 5,
               ),
-              child: const Text(
+              child: Text(
                 'Generate Avatar',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: settings.fontSize,
+                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                  color: settings.highContrast ? Colors.yellow : Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Display the generated avatar image or loading indicator
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _avatarImage != null
                     ? Column(
                         children: [
-                          const Text(
+                          Text(
                             'Generated Avatar:',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: settings.fontSize,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black54,
+                              color: settings.highContrast
+                                  ? Colors.yellow
+                                  : Colors.black54,
+                              fontFamily: settings.dyslexiaFriendly
+                                  ? 'OpenDyslexic'
+                                  : null,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -232,44 +233,64 @@ class _CreateAvatarState extends State<CreateAvatar> {
                           ),
                           const SizedBox(height: 20),
                           ElevatedButton(
-                            onPressed:
-                                _saveAvatar, // Save the avatar to Firebase
+                            onPressed: _saveAvatar,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 33, 150, 243),
+                              backgroundColor: settings.highContrast
+                                  ? Colors.black
+                                  : Colors.blue,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24.0, vertical: 16.0),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              elevation: 5,
                             ),
-                            child: const Text(
+                            child: Text(
                               'Save Avatar',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
+                                fontSize: settings.fontSize,
+                                fontFamily: settings.dyslexiaFriendly
+                                    ? 'OpenDyslexic'
+                                    : null,
+                                color: settings.highContrast
+                                    ? Colors.yellow
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       )
-                    : const Center(
-                        child: Text(
-                          'Select options to generate an avatar',
-                          style: TextStyle(fontSize: 16, color: Colors.black54),
+                    : Text(
+                        'Select options to generate an avatar',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: settings.fontSize,
+                          fontFamily:
+                              settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black54,
                         ),
                       ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/accessibility_settings');
+        },
+        backgroundColor: settings.highContrast ? Colors.yellow : Colors.blue,
+        child: const Icon(Icons.settings_accessibility, color: Colors.white),
+      ),
     );
   }
 
-  // Helper widget to build dropdown card for the options
   Widget _buildDropdownCard({
     required String title,
     required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
+    required AccessibilitySettings settings,
   }) {
     return Card(
       elevation: 5,
@@ -284,10 +305,11 @@ class _CreateAvatarState extends State<CreateAvatar> {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 16,
+              style: TextStyle(
+                fontSize: settings.fontSize,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                color: settings.highContrast ? Colors.yellow : Colors.black87,
               ),
             ),
             const SizedBox(height: 10),
@@ -300,12 +322,23 @@ class _CreateAvatarState extends State<CreateAvatar> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.grey[200],
+                fillColor:
+                    settings.highContrast ? Colors.black : Colors.grey[200],
               ),
               items: items.map((item) {
                 return DropdownMenuItem<String>(
                   value: item,
-                  child: Text(item),
+                  child: Text(
+                    item,
+                    style: TextStyle(
+                      fontSize: settings.fontSize,
+                      fontFamily:
+                          settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                      color: settings.highContrast
+                          ? Colors.yellow
+                          : Colors.black87,
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: onChanged,

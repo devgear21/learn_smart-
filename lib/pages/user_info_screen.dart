@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:learnsmart/accessibility_settings.dart';
 
 class ChildInfoPage extends StatefulWidget {
   final String userId;
@@ -20,7 +22,7 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
   bool _dyslexia = false;
   bool _asd = false;
   bool _isLoading = false;
-  bool _isPasswordVisible = false; // Add this for password visibility toggle
+  bool _isPasswordVisible = false;
 
   Future<void> _saveInfo() async {
     if (_formKey.currentState!.validate()) {
@@ -52,16 +54,26 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           "Child Information",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          style: settings.dyslexiaFriendly
+              ? TextStyle(
+                  fontSize: settings.fontSize + 4,
+                  fontWeight: FontWeight.w600,
+                  color: settings.highContrast ? Colors.yellow : Colors.white,
+                  fontFamily: 'OpenDyslexic',
+                )
+              : GoogleFonts.poppins(
+                  fontSize: settings.fontSize + 4,
+                  fontWeight: FontWeight.w600,
+                  color: settings.highContrast ? Colors.yellow : Colors.white,
+                ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: settings.highContrast ? Colors.black : Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -69,29 +81,64 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
           key: _formKey,
           child: ListView(
             children: [
+              // Title
               Text(
                 'Enter Your Child’s Details',
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+                style: settings.dyslexiaFriendly
+                    ? TextStyle(
+                        fontSize: settings.fontSize + 6,
+                        fontWeight: FontWeight.bold,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black87,
+                        fontFamily: 'OpenDyslexic',
+                      )
+                    : GoogleFonts.poppins(
+                        fontSize: settings.fontSize + 6,
+                        fontWeight: FontWeight.bold,
+                        color: settings.highContrast
+                            ? Colors.yellow
+                            : Colors.black87,
+                      ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
+
+              // Name Field
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: "Name",
-                  labelStyle: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  labelStyle: settings.dyslexiaFriendly
+                      ? TextStyle(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                          fontFamily: 'OpenDyslexic',
+                        )
+                      : GoogleFonts.poppins(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                        ),
                   contentPadding: const EdgeInsets.symmetric(
                       vertical: 12.0, horizontal: 16.0),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
+                    borderSide: BorderSide(
+                      color: settings.highContrast
+                          ? Colors.yellow
+                          : Colors.grey[400]!,
+                    ),
                   ),
+                ),
+                style: TextStyle(
+                  fontSize: settings.fontSize,
+                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                  color: settings.highContrast ? Colors.yellow : Colors.black87,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -101,20 +148,43 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 },
               ),
               const SizedBox(height: 20),
+
+              // Age Field
               TextFormField(
                 controller: _ageController,
                 decoration: InputDecoration(
                   labelText: "Age",
-                  labelStyle: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  labelStyle: settings.dyslexiaFriendly
+                      ? TextStyle(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                          fontFamily: 'OpenDyslexic',
+                        )
+                      : GoogleFonts.poppins(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                        ),
                   contentPadding: const EdgeInsets.symmetric(
                       vertical: 12.0, horizontal: 16.0),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
+                    borderSide: BorderSide(
+                      color: settings.highContrast
+                          ? Colors.yellow
+                          : Colors.grey[400]!,
+                    ),
                   ),
+                ),
+                style: TextStyle(
+                  fontSize: settings.fontSize,
+                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                  color: settings.highContrast ? Colors.yellow : Colors.black87,
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -125,19 +195,37 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 },
               ),
               const SizedBox(height: 20),
+
+              // Learning Preference Dropdown
               DropdownButtonFormField<String>(
                 value: _learningPreference,
                 decoration: InputDecoration(
                   labelText: "Learning Preference",
-                  labelStyle: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  labelStyle: settings.dyslexiaFriendly
+                      ? TextStyle(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                          fontFamily: 'OpenDyslexic',
+                        )
+                      : GoogleFonts.poppins(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                        ),
                   contentPadding: const EdgeInsets.symmetric(
                       vertical: 12.0, horizontal: 16.0),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
+                    borderSide: BorderSide(
+                      color: settings.highContrast
+                          ? Colors.yellow
+                          : Colors.grey[400]!,
+                    ),
                   ),
                 ),
                 items: ['Visual', 'Auditory', 'Kinesthetic']
@@ -145,7 +233,15 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                           value: preference,
                           child: Text(
                             preference,
-                            style: GoogleFonts.poppins(fontSize: 16),
+                            style: TextStyle(
+                              fontSize: settings.fontSize,
+                              fontFamily: settings.dyslexiaFriendly
+                                  ? 'OpenDyslexic'
+                                  : null,
+                              color: settings.highContrast
+                                  ? Colors.yellow
+                                  : Colors.black87,
+                            ),
                           ),
                         ))
                     .toList(),
@@ -162,49 +258,17 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 },
               ),
               const SizedBox(height: 20),
-              TextFormField(
-                controller: _passwordController,
-                obscureText:
-                    !_isPasswordVisible, // Update this for visibility toggle
-                decoration: InputDecoration(
-                  labelText: "Set Parental Lock Password",
-                  labelStyle: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 16.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please set a parental lock password';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
+
+              // Checkbox: Dyslexia
               CheckboxListTile(
                 title: Text(
                   'Dyslexia',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                  style: TextStyle(
+                    fontSize: settings.fontSize,
+                    fontFamily:
+                        settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                    color:
+                        settings.highContrast ? Colors.yellow : Colors.black87,
                   ),
                 ),
                 value: _dyslexia,
@@ -216,12 +280,17 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 10),
+
+              // Checkbox: ASD
               CheckboxListTile(
                 title: Text(
                   'ASD (Autism Spectrum Disorder)',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                  style: TextStyle(
+                    fontSize: settings.fontSize,
+                    fontFamily:
+                        settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                    color:
+                        settings.highContrast ? Colors.yellow : Colors.black87,
                   ),
                 ),
                 value: _asd,
@@ -233,9 +302,74 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 20),
+
+              // Password Field
+              TextFormField(
+                controller: _passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: "Set Parental Lock Password",
+                  labelStyle: settings.dyslexiaFriendly
+                      ? TextStyle(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                          fontFamily: 'OpenDyslexic',
+                        )
+                      : GoogleFonts.poppins(
+                          fontSize: settings.fontSize,
+                          fontWeight: FontWeight.w500,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.black87,
+                        ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 16.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(
+                      color: settings.highContrast
+                          ? Colors.yellow
+                          : Colors.grey[400]!,
+                    ),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color:
+                          settings.highContrast ? Colors.yellow : Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                ),
+                style: TextStyle(
+                  fontSize: settings.fontSize,
+                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                  color: settings.highContrast ? Colors.yellow : Colors.black87,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please set a parental lock password';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Save Button
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveInfo,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      settings.highContrast ? Colors.black : Colors.blue,
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -247,8 +381,13 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                       )
                     : Text(
                         'Save Information',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
+                        style: TextStyle(
+                          fontSize: settings.fontSize,
+                          fontFamily:
+                              settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+                          color: settings.highContrast
+                              ? Colors.yellow
+                              : Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -256,6 +395,13 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/accessibility_settings');
+        },
+        backgroundColor: settings.highContrast ? Colors.yellow : Colors.blue,
+        child: const Icon(Icons.settings_accessibility, color: Colors.white),
       ),
     );
   }
