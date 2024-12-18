@@ -1,73 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'lesson_content_screen.dart';
+import 'package:learnsmart/pages/accessibilty_settings_page.dart';
+import 'package:provider/provider.dart';
+import '../accessibility_settings.dart';
 
 class LessonsScreen extends StatelessWidget {
-  final String moduleId;
+  final String subjectId;
+  final List<Map<String, dynamic>> modules;
 
-  LessonsScreen({super.key, required this.moduleId});
-
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  LessonsScreen({super.key, required this.subjectId, required this.modules});
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
+    // Accessibility settings
+    final fontFamily = settings.dyslexiaFriendly ? 'OpenDyslexic' : 'Poppins';
+    final textColor = settings.highContrast ? Colors.yellow : Colors.black;
+    final backgroundColor = settings.highContrast ? Colors.black : Colors.white;
+    final tileBackgroundColor =
+        settings.highContrast ? Colors.grey[800] : Colors.white;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Lessons')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore
-            .collection('modules')
-            .doc(moduleId)
-            .collection('lessons')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No lessons available'));
-          }
-
-          final lessons = snapshot.data!.docs;
-
-          return ListView.builder(
-            itemCount: lessons.length,
-            itemBuilder: (context, index) {
-              final lessonData = lessons[index].data() as Map<String, dynamic>?;
-              final lessonId = lessons[index].id;
-
-              // Check if lessonData is null
-              if (lessonData == null) {
-                print('Lesson data is null for lessonId: $lessonId');
-                return const ListTile(
-                  title: Text('Unknown Lesson'),
-                  subtitle: Text('Data not available'),
-                );
-              }
-
-              final lessonTitle = lessonData['title'] ?? 'Untitled Lesson';
-              final lessonDescription =
-                  lessonData['description'] ?? 'No description available';
-
-              print(
-                  'Lesson ID: $lessonId, Title: $lessonTitle, Description: $lessonDescription');
-
-              return ListTile(
-                title: Text(lessonTitle),
-                subtitle: Text(lessonDescription),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LessonContentScreen(
-                        lessonId: lessonId,
-                        moduleId: moduleId,
-                      ),
-                    ),
-                  );
-                },
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: Text(
+          'Lessons for $subjectId',
+          style: TextStyle(
+            fontFamily: fontFamily,
+            color: textColor,
+            fontSize: settings.fontSize + 2,
+          ),
+        ),
+        backgroundColor:
+            settings.highContrast ? Colors.black : const Color(0xFF2196F3),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.settings_accessibility,
+              color: settings.highContrast ? Colors.yellow : Colors.white,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const AccessibilitySettingsPage()),
               );
             },
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        itemCount: modules.length,
+        itemBuilder: (context, index) {
+          final module = modules[index];
+          final moduleTitle = module['moduleTitle'];
+          final questions = module['questions'] as List<Map<String, dynamic>>;
+
+          return Card(
+            elevation: 4,
+            color: tileBackgroundColor,
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: ExpansionTile(
+              title: Text(
+                moduleTitle,
+                style: TextStyle(
+                  fontFamily: fontFamily,
+                  fontSize: settings.fontSize,
+                  color: textColor,
+                ),
+              ),
+              children: questions.map((question) {
+                return ListTile(
+                  title: Text(
+                    question['questionText'] ?? 'Question',
+                    style: TextStyle(
+                      fontFamily: fontFamily,
+                      fontSize: settings.fontSize - 2,
+                      color: textColor,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'ID: ${question['id']}',
+                    style: TextStyle(
+                      fontFamily: fontFamily,
+                      fontSize: settings.fontSize - 4,
+                      color: textColor,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           );
         },
       ),

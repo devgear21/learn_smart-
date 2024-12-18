@@ -57,21 +57,21 @@ class _CourseOptionState extends State<CourseOption> {
                       ),
                       const SizedBox(height: 20),
                       CourseOptionItem(
-                        title: 'Mathematics',
-                        isSelected: selectedCourse == 'Mathematics',
+                        title: 'Math',
+                        isSelected: selectedCourse == 'Math',
                         onTap: () {
                           setState(() {
-                            selectedCourse = 'Mathematics';
+                            selectedCourse = 'Math';
                           });
                         },
                       ),
                       const SizedBox(height: 20),
                       CourseOptionItem(
-                        title: 'General Knowledge',
-                        isSelected: selectedCourse == 'General Knowledge',
+                        title: 'General Education',
+                        isSelected: selectedCourse == 'General Education',
                         onTap: () {
                           setState(() {
-                            selectedCourse = 'General Knowledge';
+                            selectedCourse = 'General Education';
                           });
                         },
                       ),
@@ -83,7 +83,14 @@ class _CourseOptionState extends State<CourseOption> {
                 GestureDetector(
                   onTap: () {
                     if (selectedCourse != null) {
-                      Navigator.pushNamed(context, '/learning_modules');
+                      Navigator.pushNamed(context, '/learning_modules',
+                          arguments: selectedCourse);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please select a course first!'),
+                        ),
+                      );
                     }
                   },
                   child: Container(
@@ -91,27 +98,19 @@ class _CourseOptionState extends State<CourseOption> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
                     ),
                     child: Center(
                       child: Text(
                         'Get Started',
                         style: GoogleFonts.poppins(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: const Color.fromARGB(255, 33, 150, 243),
+                          color: const Color.fromARGB(255, 2, 50, 100),
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -123,14 +122,14 @@ class _CourseOptionState extends State<CourseOption> {
 
 class CourseOptionItem extends StatelessWidget {
   final String title;
-  final VoidCallback onTap;
   final bool isSelected;
+  final VoidCallback onTap;
 
   const CourseOptionItem({
     super.key,
     required this.title,
-    required this.onTap,
     required this.isSelected,
+    required this.onTap,
   });
 
   @override
@@ -138,31 +137,22 @@ class CourseOptionItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected
-              ? Colors.white.withOpacity(0.85)
-              : Colors.white.withOpacity(0.15),
-          boxShadow: [
-            if (isSelected)
-              BoxShadow(
-                color: Colors.white.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-          ],
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.grey.shade300,
+          ),
         ),
-        child: Center(
-          child: Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: isSelected
-                  ? const Color.fromARGB(255, 33, 150, 243)
-                  : Colors.white,
-            ),
+        child: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isSelected
+                ? const Color.fromARGB(255, 33, 150, 243)
+                : Colors.white,
           ),
         ),
       ),

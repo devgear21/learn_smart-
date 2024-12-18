@@ -18,7 +18,7 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _learningPreference;
+  String? _currentDifficulty;
   bool _dyslexia = false;
   bool _asd = false;
   bool _isLoading = false;
@@ -30,25 +30,72 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
         _isLoading = true;
       });
 
-      // Save information to Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .set({
-        'name': _nameController.text,
-        'age': _ageController.text,
-        'learningPreference': _learningPreference,
-        'dyslexia': _dyslexia,
-        'asd': _asd,
-        'parentalLockPassword': _passwordController.text,
-      });
+      try {
+        final now = DateTime.now();
 
-      setState(() {
-        _isLoading = false;
-      });
+        // Prepare child_data structure
+        final childData = {
+          "age": int.parse(_ageController.text.trim()),
+          "learning_challenge":
+              _asd ? "Autism" : (_dyslexia ? "Dyslexia" : "None"),
+          "transition_history": [0, 1, 2, 1, 0], // Initial difficulty history
+          "current_difficulty":
+              _currentDifficulty ?? "Medium", // Default difficulty
+        };
 
-      // Navigate to create_avatar.dart page after saving
-      Navigator.pushReplacementNamed(context, '/createAvatar');
+        // Prepare quiz_data structures
+        final quizDataEnglish = {
+          "total_questions_attempted": 0,
+          "correct_answers": 0,
+          "accuracy": 0.0,
+          "avg_attempt_time": 0.0,
+          "train": true,
+        };
+
+        final quizDataMath = {
+          "total_questions_attempted": 0,
+          "correct_answers": 0,
+          "accuracy": 0.0,
+          "avg_attempt_time": 0.0,
+          "train": true,
+        };
+
+        final quizDataGeneralKnowledge = {
+          "total_questions_attempted": 0,
+          "correct_answers": 0,
+          "accuracy": 0.0,
+          "avg_attempt_time": 0.0,
+          "train": true,
+        };
+
+        // Save data to Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.userId)
+            .set({
+          "name": _nameController.text.trim(),
+          "child_data": childData,
+          "quiz_data_english": quizDataEnglish,
+          "quiz_data_math": quizDataMath,
+          "quiz_data_general_knowledge": quizDataGeneralKnowledge,
+          "parentalLockPassword": _passwordController.text.trim(),
+          "createdAt": now.toIso8601String(),
+          "updatedAt": now.toIso8601String(),
+        });
+
+        // Navigate to the next page
+        Navigator.pushReplacementNamed(context, '/createAvatar');
+      } catch (e) {
+        print("Error saving information: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Failed to save information. Please try again.')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -74,6 +121,14 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                 ),
         ),
         backgroundColor: settings.highContrast ? Colors.black : Colors.blue,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_accessibility, color: Colors.white),
+            onPressed: () {
+              Navigator.pushNamed(context, '/accessibility_settings');
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -81,65 +136,33 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
           key: _formKey,
           child: ListView(
             children: [
-              // Title
-              Text(
-                'Enter Your Child’s Details',
-                style: settings.dyslexiaFriendly
-                    ? TextStyle(
-                        fontSize: settings.fontSize + 6,
-                        fontWeight: FontWeight.bold,
-                        color: settings.highContrast
-                            ? Colors.yellow
-                            : Colors.black87,
-                        fontFamily: 'OpenDyslexic',
-                      )
-                    : GoogleFonts.poppins(
-                        fontSize: settings.fontSize + 6,
-                        fontWeight: FontWeight.bold,
-                        color: settings.highContrast
-                            ? Colors.yellow
-                            : Colors.black87,
-                      ),
-              ),
-              const SizedBox(height: 30),
-
-              // Name Field
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: "Name",
-                  labelStyle: settings.dyslexiaFriendly
+              Center(
+                child: Text(
+                  'Enter Your Child’s Details',
+                  style: settings.dyslexiaFriendly
                       ? TextStyle(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
+                          fontSize: settings.fontSize + 6,
+                          fontWeight: FontWeight.bold,
                           color: settings.highContrast
                               ? Colors.yellow
                               : Colors.black87,
                           fontFamily: 'OpenDyslexic',
                         )
                       : GoogleFonts.poppins(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
+                          fontSize: settings.fontSize + 6,
+                          fontWeight: FontWeight.bold,
                           color: settings.highContrast
                               ? Colors.yellow
                               : Colors.black87,
                         ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 16.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: settings.highContrast
-                          ? Colors.yellow
-                          : Colors.grey[400]!,
-                    ),
-                  ),
                 ),
-                style: TextStyle(
-                  fontSize: settings.fontSize,
-                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
-                  color: settings.highContrast ? Colors.yellow : Colors.black87,
-                ),
+              ),
+              const SizedBox(height: 30),
+
+              _buildTextField(
+                label: "Name",
+                controller: _nameController,
+                settings: settings,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the name';
@@ -149,43 +172,10 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
               ),
               const SizedBox(height: 20),
 
-              // Age Field
-              TextFormField(
+              _buildTextField(
+                label: "Age",
                 controller: _ageController,
-                decoration: InputDecoration(
-                  labelText: "Age",
-                  labelStyle: settings.dyslexiaFriendly
-                      ? TextStyle(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
-                          color: settings.highContrast
-                              ? Colors.yellow
-                              : Colors.black87,
-                          fontFamily: 'OpenDyslexic',
-                        )
-                      : GoogleFonts.poppins(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
-                          color: settings.highContrast
-                              ? Colors.yellow
-                              : Colors.black87,
-                        ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 16.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: settings.highContrast
-                          ? Colors.yellow
-                          : Colors.grey[400]!,
-                    ),
-                  ),
-                ),
-                style: TextStyle(
-                  fontSize: settings.fontSize,
-                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
-                  color: settings.highContrast ? Colors.yellow : Colors.black87,
-                ),
+                settings: settings,
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -196,43 +186,15 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
               ),
               const SizedBox(height: 20),
 
-              // Learning Preference Dropdown
+              // Current Difficulty Dropdown
               DropdownButtonFormField<String>(
-                value: _learningPreference,
-                decoration: InputDecoration(
-                  labelText: "Learning Preference",
-                  labelStyle: settings.dyslexiaFriendly
-                      ? TextStyle(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
-                          color: settings.highContrast
-                              ? Colors.yellow
-                              : Colors.black87,
-                          fontFamily: 'OpenDyslexic',
-                        )
-                      : GoogleFonts.poppins(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
-                          color: settings.highContrast
-                              ? Colors.yellow
-                              : Colors.black87,
-                        ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 16.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: settings.highContrast
-                          ? Colors.yellow
-                          : Colors.grey[400]!,
-                    ),
-                  ),
-                ),
-                items: ['Visual', 'Auditory', 'Kinesthetic']
-                    .map((preference) => DropdownMenuItem(
-                          value: preference,
+                value: _currentDifficulty,
+                decoration: _inputDecoration("Current Difficulty", settings),
+                items: ['Easy', 'Medium', 'Hard']
+                    .map((difficulty) => DropdownMenuItem(
+                          value: difficulty,
                           child: Text(
-                            preference,
+                            difficulty,
                             style: TextStyle(
                               fontSize: settings.fontSize,
                               fontFamily: settings.dyslexiaFriendly
@@ -247,113 +209,69 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                     .toList(),
                 onChanged: (value) {
                   setState(() {
-                    _learningPreference = value;
+                    _currentDifficulty = value;
                   });
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please select a learning preference';
+                    return 'Please select a difficulty';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
 
-              // Checkbox: Dyslexia
-              CheckboxListTile(
-                title: Text(
-                  'Dyslexia',
-                  style: TextStyle(
-                    fontSize: settings.fontSize,
-                    fontFamily:
-                        settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
-                    color:
-                        settings.highContrast ? Colors.yellow : Colors.black87,
-                  ),
-                ),
+              _buildCheckbox(
+                label: "Dyslexia",
                 value: _dyslexia,
                 onChanged: (value) {
                   setState(() {
-                    _dyslexia = value!;
+                    if (value == true) {
+                      _dyslexia = true;
+                      _asd = false;
+                    } else {
+                      _dyslexia = false;
+                    }
                   });
                 },
-                controlAffinity: ListTileControlAffinity.leading,
+                settings: settings,
               ),
               const SizedBox(height: 10),
 
-              // Checkbox: ASD
-              CheckboxListTile(
-                title: Text(
-                  'ASD (Autism Spectrum Disorder)',
-                  style: TextStyle(
-                    fontSize: settings.fontSize,
-                    fontFamily:
-                        settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
-                    color:
-                        settings.highContrast ? Colors.yellow : Colors.black87,
-                  ),
-                ),
+              _buildCheckbox(
+                label: "ASD (Autism Spectrum Disorder)",
                 value: _asd,
                 onChanged: (value) {
                   setState(() {
-                    _asd = value!;
+                    if (value == true) {
+                      _asd = true;
+                      _dyslexia = false;
+                    } else {
+                      _asd = false;
+                    }
                   });
                 },
-                controlAffinity: ListTileControlAffinity.leading,
+                settings: settings,
               ),
               const SizedBox(height: 20),
 
-              // Password Field
-              TextFormField(
+              _buildTextField(
+                label: "Set Parental Lock Password",
                 controller: _passwordController,
+                settings: settings,
                 obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: "Set Parental Lock Password",
-                  labelStyle: settings.dyslexiaFriendly
-                      ? TextStyle(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
-                          color: settings.highContrast
-                              ? Colors.yellow
-                              : Colors.black87,
-                          fontFamily: 'OpenDyslexic',
-                        )
-                      : GoogleFonts.poppins(
-                          fontSize: settings.fontSize,
-                          fontWeight: FontWeight.w500,
-                          color: settings.highContrast
-                              ? Colors.yellow
-                              : Colors.black87,
-                        ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 16.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: settings.highContrast
-                          ? Colors.yellow
-                          : Colors.grey[400]!,
-                    ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: settings.highContrast ? Colors.yellow : Colors.grey,
                   ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color:
-                          settings.highContrast ? Colors.yellow : Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-                style: TextStyle(
-                  fontSize: settings.fontSize,
-                  fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
-                  color: settings.highContrast ? Colors.yellow : Colors.black87,
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -362,46 +280,110 @@ class _ChildInfoPageState extends State<ChildInfoPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
-              // Save Button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveInfo,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      settings.highContrast ? Colors.black : Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveInfo,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        settings.highContrast ? Colors.black : Colors.blue,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16.0, horizontal: 32.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      )
-                    : Text(
-                        'Save Information',
-                        style: TextStyle(
-                          fontSize: settings.fontSize,
-                          fontFamily:
-                              settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
-                          color: settings.highContrast
-                              ? Colors.yellow
-                              : Colors.white,
-                          fontWeight: FontWeight.w600,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        )
+                      : Text(
+                          'Save Information',
+                          style: TextStyle(
+                            fontSize: settings.fontSize,
+                            fontFamily: settings.dyslexiaFriendly
+                                ? 'OpenDyslexic'
+                                : null,
+                            color: settings.highContrast
+                                ? Colors.yellow
+                                : Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
+                ),
               ),
             ],
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/accessibility_settings');
-        },
-        backgroundColor: settings.highContrast ? Colors.yellow : Colors.blue,
-        child: const Icon(Icons.settings_accessibility, color: Colors.white),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required AccessibilitySettings settings,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+    bool obscureText = false,
+    Widget? suffixIcon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      decoration:
+          _inputDecoration(label, settings).copyWith(suffixIcon: suffixIcon),
+      validator: validator,
+    );
+  }
+
+  Widget _buildCheckbox({
+    required String label,
+    required bool value,
+    required void Function(bool?) onChanged,
+    required AccessibilitySettings settings,
+  }) {
+    return CheckboxListTile(
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: settings.fontSize,
+          fontFamily: settings.dyslexiaFriendly ? 'OpenDyslexic' : null,
+          color: settings.highContrast ? Colors.yellow : Colors.black87,
+        ),
+      ),
+      value: value,
+      onChanged: onChanged,
+      controlAffinity: ListTileControlAffinity.leading,
+    );
+  }
+
+  InputDecoration _inputDecoration(
+      String label, AccessibilitySettings settings) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: settings.dyslexiaFriendly
+          ? TextStyle(
+              fontSize: settings.fontSize,
+              fontWeight: FontWeight.w500,
+              color: settings.highContrast ? Colors.yellow : Colors.black87,
+              fontFamily: 'OpenDyslexic',
+            )
+          : GoogleFonts.poppins(
+              fontSize: settings.fontSize,
+              fontWeight: FontWeight.w500,
+              color: settings.highContrast ? Colors.yellow : Colors.black87,
+            ),
+      contentPadding:
+          const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(
+          color: settings.highContrast ? Colors.yellow : Colors.grey[400]!,
+        ),
       ),
     );
   }

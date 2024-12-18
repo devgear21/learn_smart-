@@ -1,26 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import '../global_user.dart';
 
 class ProgressTrackPage extends StatefulWidget {
-  final String userId;
-
-  const ProgressTrackPage({super.key, required this.userId});
+  const ProgressTrackPage({super.key});
 
   @override
-  _ProgressTrackPageState createState() => _ProgressTrackPageState();
+  State<ProgressTrackPage> createState() => _ProgressTrackPageState();
 }
 
 class _ProgressTrackPageState extends State<ProgressTrackPage> {
-  bool _isLocked = true; // Indicates whether the page is locked
+  final String userId = GlobalUser().userId;
+  Map<String, dynamic> quizData = {};
+  bool _isLocked = true;
+  bool _isLoading = true;
   final _passwordController = TextEditingController();
-
-  // Mocked data for progress tracking
-  double productiveHours = 6.5;
-  double unproductiveHours = 2.25;
-  double totalScore = 79;
-  String dateRange = "Today";
-  double percentageChange = 3.6;
 
   @override
   void initState() {
@@ -29,37 +24,37 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
   }
 
   Future<void> _checkParentalLock() async {
-    // Fetch parental lock password from Firestore
-    DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-        .instance
-        .collection('users')
-        .doc(widget.userId)
-        .get();
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
 
-    String? savedPassword = snapshot.data()?['parentalLockPassword'];
-
-    if (savedPassword != null && savedPassword.isNotEmpty) {
-      _showLockDialog(savedPassword);
-    } else {
-      // If no password is set, allow access
-      setState(() {
-        _isLocked = false;
-      });
+      if (userDoc.exists) {
+        final savedPassword = userDoc.data()?['parentalLockPassword'];
+        if (savedPassword != null && savedPassword.isNotEmpty) {
+          _showLockDialog(savedPassword);
+        } else {
+          setState(() {
+            _isLocked = false;
+          });
+          _fetchQuizData();
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching parental lock: $e')),
+      );
     }
   }
 
   void _showLockDialog(String savedPassword) {
     showDialog(
       context: context,
-      barrierDismissible:
-          false, // Prevent closing the dialog without entering the password
+      barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: Text(
-            "Enter Parental Lock Password",
-            style:
-                GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+          title: const Text("Enter Parental Lock Password"),
           content: TextField(
             controller: _passwordController,
             obscureText: true,
@@ -76,6 +71,7 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
                     _isLocked = false;
                   });
                   Navigator.of(context).pop();
+                  _fetchQuizData();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Incorrect password')),
@@ -90,9 +86,118 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
     );
   }
 
+  Future<void> _fetchQuizData() async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data();
+
+        setState(() {
+          quizData['English'] = data?['quiz_data_english'] ?? {};
+          quizData['Math'] = data?['quiz_data_math'] ?? {};
+          quizData['General Knowledge'] =
+              data?['quiz_data_general_knowledge'] ?? {};
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching quiz data: $e')),
+      );
+    }
+  }
+
+  Widget _buildPieChart(String subject, Map<String, dynamic> data) {
+    final pieData = data.entries
+        .where((entry) => entry.key != 'train') // Exclude unwanted fields
+        .map((entry) =>
+            ChartData(entry.key, double.tryParse(entry.value.toString()) ?? 0))
+        .toList();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$subject - Quiz Distribution',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SfCircularChart(
+              title: ChartTitle(text: '$subject Quiz Categories'),
+              legend: Legend(isVisible: true),
+              tooltipBehavior: TooltipBehavior(enable: true),
+              series: <CircularSeries>[
+                PieSeries<ChartData, String>(
+                  dataSource: pieData,
+                  xValueMapper: (ChartData data, _) => data.x,
+                  yValueMapper: (ChartData data, _) => data.y,
+                  dataLabelSettings: const DataLabelSettings(isVisible: true),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuizChart(String subject, Map<String, dynamic> data) {
+    final chartData = data.entries
+        .where((entry) => entry.key != 'train') // Exclude unwanted fields
+        .map((entry) =>
+            ChartData(entry.key, double.tryParse(entry.value.toString()) ?? 0))
+        .toList();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              subject,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SfCartesianChart(
+              primaryXAxis: CategoryAxis(),
+              title: ChartTitle(text: '$subject Quiz Performance'),
+              tooltipBehavior: TooltipBehavior(enable: true),
+              series: <ChartSeries>[
+                ColumnSeries<ChartData, String>(
+                  dataSource: chartData,
+                  xValueMapper: (ChartData data, _) => data.x,
+                  yValueMapper: (ChartData data, _) => data.y,
+                  dataLabelSettings: const DataLabelSettings(isVisible: true),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLocked) {
+    if (_isLocked || _isLoading) {
       return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
@@ -104,177 +209,29 @@ class _ProgressTrackPageState extends State<ProgressTrackPage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          "Statistics",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: const Color.fromARGB(255, 33, 150, 243),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Row(
-              children: [
-                Text(
-                  dateRange,
-                  style: GoogleFonts.poppins(fontSize: 16),
-                ),
-                const Icon(Icons.arrow_drop_down),
-              ],
-            ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Overview and Detailed Tab
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Overview",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    // Handle detailed tab change
-                  },
-                  child: Text(
-                    "Detailed",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Logged time and breakdown
-            Text(
-              "Logged time",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+      appBar: AppBar(title: const Text('Progress Tracker')),
+      body: quizData.isEmpty
+          ? const Center(child: Text('No quiz data available'))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: quizData.entries
+                    .map((entry) => Column(
+                          children: [
+                            _buildPieChart(entry.key, entry.value),
+                            _buildQuizChart(entry.key, entry.value),
+                          ],
+                        ))
+                    .toList(),
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "08h 45m",
-                  style: GoogleFonts.poppins(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  "+ $percentageChange%",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Productive vs Unproductive
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildTimeBox("Productive", productiveHours, Colors.blue),
-                _buildTimeBox("Unproductive", unproductiveHours, Colors.red),
-              ],
-            ),
-            const SizedBox(height: 30),
-            // Score Indicator
-            Center(
-              child: _buildScoreIndicator(totalScore),
-            ),
-          ],
-        ),
-      ),
     );
   }
+}
 
-  Widget _buildTimeBox(String label, double hours, Color color) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "${hours.toStringAsFixed(2)}h",
-          style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
+class ChartData {
+  final String x;
+  final double y;
 
-  Widget _buildScoreIndicator(double score) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 180,
-              height: 180,
-              child: CircularProgressIndicator(
-                value: score / 100,
-                strokeWidth: 12,
-                color: score > 50 ? Colors.blue : Colors.red,
-              ),
-            ),
-            Column(
-              children: [
-                Text(
-                  score.toStringAsFixed(0),
-                  style: GoogleFonts.poppins(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  score > 70 ? "Very Productive" : "Needs Improvement",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  ChartData(this.x, this.y);
 }

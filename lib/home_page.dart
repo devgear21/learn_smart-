@@ -7,9 +7,12 @@ import 'package:learnsmart/pages/chatbot_screen.dart';
 import 'package:learnsmart/pages/chat_screen.dart';
 import 'package:learnsmart/pages/course_option.dart';
 import 'package:learnsmart/pages/progress_track.dart';
+import 'package:learnsmart/pages/rewards.dart';
+import 'package:learnsmart/pages/feedback.dart'; // Import the Feedback page
 import 'package:provider/provider.dart';
 import 'package:learnsmart/accessibility_settings.dart';
 import 'package:string_similarity/string_similarity.dart';
+import 'global_user.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,6 +33,7 @@ class _HomePageState extends State<HomePage> {
     {'title': 'ChatBuddy', 'subtitle': 'Interact with AI'},
     {'title': 'FaceBuddy', 'subtitle': 'Talk to your Avatar'},
     {'title': 'Rewards', 'subtitle': 'See your trophies!'},
+    {'title': 'Feedback', 'subtitle': 'Share your thoughts!'}, // New category
   ];
 
   @override
@@ -40,6 +44,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
+    GlobalUser().userId = (user?.uid).toString();
 
     if (user != null) {
       userEmail = user.email;
@@ -69,8 +74,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProgressTrackPage(
-                userId: FirebaseAuth.instance.currentUser!.uid),
+            builder: (context) => const ProgressTrackPage(),
           ),
         );
       }
@@ -166,16 +170,12 @@ class _HomePageState extends State<HomePage> {
 
     // Accessibility settings
     final fontFamily = settings.dyslexiaFriendly ? 'OpenDyslexic' : 'Poppins';
-    // ignore: unused_local_variable
-    final textColor = settings.highContrast ? Colors.yellow : Colors.black87;
 
     final double screenHeight = MediaQuery.of(context).size.height;
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: settings.highContrast
-          ? Colors.black
-          : Colors.white, // Background color
+      backgroundColor: settings.highContrast ? Colors.black : Colors.white,
       appBar: AppBar(
         backgroundColor: settings.highContrast
             ? Colors.black
@@ -223,7 +223,7 @@ class _HomePageState extends State<HomePage> {
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Search your topics',
+                  hintText: 'Search your field',
                   hintStyle: TextStyle(
                     fontFamily: fontFamily,
                   ),
@@ -277,7 +277,20 @@ class _HomePageState extends State<HomePage> {
                             );
                             break;
                           case 'Rewards':
-                            // Add functionality for rewards
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RewardsPage(),
+                              ),
+                            );
+                            break;
+                          case 'Feedback': // New Feedback case
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const FeedbackPage(),
+                              ),
+                            );
                             break;
                         }
                       },
@@ -318,15 +331,7 @@ class _HomePageState extends State<HomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.library_books),
-            label: 'Learnings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Statistics',
           ),
         ],
       ),
@@ -409,6 +414,8 @@ class CategoryCard extends StatelessWidget {
         return Icons.face;
       case 'Rewards':
         return Icons.emoji_events;
+      case 'Feedback':
+        return Icons.feedback; // Icon for Feedback
       default:
         return Icons.category;
     }

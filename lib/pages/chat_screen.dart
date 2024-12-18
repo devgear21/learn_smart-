@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:io'; // For file handling
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart'; // For accessing device storage
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'package:learnsmart/pages/accessibilty_settings_page.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:video_player/video_player.dart'; // Import video player
+import 'package:video_player/video_player.dart';
+import 'package:provider/provider.dart';
+import 'package:learnsmart/accessibility_settings.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -18,12 +21,13 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   String? userId;
-  Uint8List? userImageBytes; // Image fetched from Firestore
+  Uint8List? userImageBytes;
   String? chatbotResponse;
+  Uint8List? generatedImageBytes;
   final TextEditingController _controller = TextEditingController();
 
-  VideoPlayerController? _videoController; // Video player controller
-  String? videoFilePath; // Path to the saved video file
+  VideoPlayerController? _videoController;
+  String? videoFilePath;
 
   @override
   void initState() {
@@ -33,11 +37,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    _videoController?.dispose(); // Clean up the video controller
+    _videoController?.dispose();
     super.dispose();
   }
 
-  // Get user ID
   void _getUserId() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -48,7 +51,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // Fetch user image from Firebase Storage
   Future<void> _fetchUserImage() async {
     try {
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
@@ -57,18 +59,16 @@ class _ChatScreenState extends State<ChatScreen> {
           .get();
       String imageUrl = userSnapshot['imageUrl'];
       final ref = FirebaseStorage.instance.refFromURL(imageUrl);
-      final imageData = await ref.getData(); // Fetch the image as bytes
+      final imageData = await ref.getData();
 
       setState(() {
-        userImageBytes =
-            imageData; // Store image bytes for lipsync video generation
+        userImageBytes = imageData;
       });
     } catch (e) {
       print('Error fetching user image: $e');
     }
   }
 
-  // Send user input to FastAPI backend
   Future<void> _sendUserInput(String userInput) async {
     if (userImageBytes == null) {
       print('No user image available to send');
@@ -79,14 +79,13 @@ class _ChatScreenState extends State<ChatScreen> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'https://5813-34-82-213-37.ngrok-free.app/process'), // Your FastAPI endpoint
+            'https://ad16-34-124-247-25.ngrok-free.app/process'), // Replace with actual URL
       );
-      request.fields['user_input'] =
-          userInput; // The chatbot's response or user's input
+      request.fields['user_input'] = userInput;
       request.files.add(http.MultipartFile.fromBytes(
         'image',
         userImageBytes!,
-        filename: 'user_image.png', // Send the image to the backend for lipsync
+        filename: 'user_image.png',
       ));
 
       var response = await request.send();
@@ -96,8 +95,10 @@ class _ChatScreenState extends State<ChatScreen> {
         final decodedResponse = jsonDecode(responseBody);
 
         setState(() {
-          chatbotResponse =
-              decodedResponse['response']; // Get the chatbot response
+          chatbotResponse = decodedResponse['response'];
+          generatedImageBytes = decodedResponse['image_base64'] != null
+              ? base64Decode(decodedResponse['image_base64'])
+              : null;
         });
 
         if (decodedResponse['video_base64'] != null) {
@@ -112,28 +113,26 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // Save video file to local storage and play it
   Future<void> _saveAndPlayVideo(Uint8List videoBytes) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/generated_video.mp4');
-      await file.writeAsBytes(videoBytes); // Save video as a file
+      await file.writeAsBytes(videoBytes);
       setState(() {
         videoFilePath = file.path;
       });
 
-      _initializeVideoPlayer(file); // Play the video
+      _initializeVideoPlayer(file);
     } catch (e) {
       print('Error saving video file: $e');
     }
   }
 
-  // Initialize video player with the saved video file
   Future<void> _initializeVideoPlayer(File videoFile) async {
     _videoController = VideoPlayerController.file(videoFile)
       ..initialize().then((_) {
         setState(() {
-          _videoController!.play(); // Play the video once initialized
+          _videoController!.play();
         });
       }).catchError((error) {
         print('Error initializing video: $error');
@@ -142,18 +141,42 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AccessibilitySettings>(context);
+
+    // Accessibility settings
+    final fontFamily = settings.dyslexiaFriendly ? 'OpenDyslexic' : 'Poppins';
+    final textColor = settings.highContrast ? Colors.yellow : Colors.black87;
+    final backgroundColor = settings.highContrast ? Colors.black : Colors.white;
+    final buttonColor =
+        settings.highContrast ? Colors.black : Colors.blueAccent;
+
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 245, 245, 245),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Chat with Assistant',
+        title: Text(
+          '                FaceBuddy',
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
+            fontFamily: fontFamily,
+            color: textColor,
+            fontSize: settings.fontSize + 2,
           ),
         ),
-        backgroundColor: Color.fromARGB(255, 33, 150, 243),
+        backgroundColor: buttonColor,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.settings_accessibility,
+              color: settings.highContrast ? Colors.yellow : Colors.white,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const AccessibilitySettingsPage()),
+              );
+            },
+          ),
+        ],
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -162,57 +185,62 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-
-              // Display chatbot response within a futuristic card
               if (chatbotResponse != null)
                 Card(
-                  color: Colors.white,
+                  color: backgroundColor,
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
-                    side: BorderSide(color: Color.fromARGB(255, 33, 150, 243)),
+                    side: BorderSide(color: buttonColor),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
                       'Assistant: $chatbotResponse',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                      style: TextStyle(
+                        fontFamily: fontFamily,
+                        fontSize: settings.fontSize,
+                        color: textColor,
                       ),
                     ),
                   ),
-                )
-              else
-                const Text(
-                  'Waiting for input...',
-                  style: TextStyle(
-                      fontSize: 16, color: Color.fromARGB(255, 33, 150, 243)),
                 ),
-
+              if (generatedImageBytes != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: SizedBox(
+                    width: 200, // Set the desired width
+                    height: 200, // Set the desired height
+                    child: Image.memory(
+                      generatedImageBytes!,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 20),
-
-              // Text field for user input
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: _controller,
+                  style: TextStyle(
+                    fontFamily: fontFamily,
+                    color: textColor,
+                    fontSize: settings.fontSize,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'Enter your message',
+                    labelStyle: TextStyle(
+                      fontFamily: fontFamily,
+                      color: textColor,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide:
-                          BorderSide(color: Color.fromARGB(255, 33, 150, 243)),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
-                    labelStyle: const TextStyle(color: Colors.blueGrey),
+                    fillColor: backgroundColor,
                   ),
                 ),
               ),
-
-              // Button to send input to the chatbot
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
@@ -220,23 +248,24 @@ class _ChatScreenState extends State<ChatScreen> {
                     _sendUserInput(_controller.text);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 33, 150, 243),
+                    backgroundColor: buttonColor,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24.0, vertical: 12.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Send',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontFamily: fontFamily,
+                      fontSize: settings.fontSize,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Display the video using VideoPlayer within a futuristic card
               if (videoFilePath != null &&
                   _videoController != null &&
                   _videoController!.value.isInitialized)
@@ -244,7 +273,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
-                    side: BorderSide(color: Color.fromARGB(255, 33, 150, 243)),
+                    side: BorderSide(color: buttonColor),
                   ),
                   child: Column(
                     children: [
@@ -261,7 +290,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 : _videoController!.play();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 33, 150, 243),
+                            backgroundColor: buttonColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
@@ -278,10 +307,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 )
               else
-                const Text(
+                Text(
                   'Waiting for video...',
                   style: TextStyle(
-                      fontSize: 16, color: Color.fromARGB(255, 33, 150, 243)),
+                    fontFamily: fontFamily,
+                    fontSize: settings.fontSize,
+                    color: textColor,
+                  ),
                 ),
             ],
           ),

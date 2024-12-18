@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:learnsmart/accessibility_settings.dart';
 
 class CreateAvatar extends StatefulWidget {
-  const CreateAvatar({Key? key}) : super(key: key);
+  const CreateAvatar({super.key});
 
   @override
   _CreateAvatarState createState() => _CreateAvatarState();
@@ -48,7 +48,7 @@ class _CreateAvatarState extends State<CreateAvatar> {
 
     try {
       var response = await http.post(
-        Uri.parse('https://0c00-34-125-11-60.ngrok-free.app/generate_image'),
+        Uri.parse('https://8fc2-34-87-3-145.ngrok-free.app/generate_image'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"prompt": prompt}),
       );

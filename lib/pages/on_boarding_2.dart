@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:learnsmart/home_page.dart';
 import 'package:learnsmart/pages/accessibilty_settings_page.dart';
 import 'package:learnsmart/pages/on_boarding_3.dart';
+// ignore: unused_import
 import 'package:learnsmart/pages/course_option.dart';
 import 'package:provider/provider.dart';
 import 'package:learnsmart/accessibility_settings.dart';
@@ -219,7 +221,7 @@ class OnBoarding2 extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const CourseOption()),
+                              builder: (context) => const HomePage()),
                         );
                       },
                       child: Container(

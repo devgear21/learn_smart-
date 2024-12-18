@@ -18,6 +18,7 @@ import 'package:learnsmart/pages/learning_modules_screen.dart';
 import 'package:learnsmart/pages/user_info_screen.dart';
 import 'package:learnsmart/pages/animation_screen.dart';
 import 'accessibility_settings.dart'; // Accessibility settings provider
+//import 'package:learnsmart/pages/user_info_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +64,7 @@ class MyApp extends StatelessWidget {
         ),
         colorScheme: ColorScheme.light(
           primary: settings.highContrast ? Colors.yellow : Colors.blue,
-          background: settings.highContrast ? Colors.black : Colors.white,
+          surface: settings.highContrast ? Colors.black : Colors.white,
         ),
       ),
       initialRoute: '/splashscreen',
@@ -76,15 +77,12 @@ class MyApp extends StatelessWidget {
         '/homepage': (context) => const HomePage(),
         '/splashscreen': (context) => const SplashScreen(),
         '/courseoption': (context) => const CourseOption(),
-        '/learning_modules': (context) => LearningModulesScreen(),
         '/avatar': (context) => const AvatarScreen(),
         '/animation': (context) => const AnimationScreen(),
         '/chatbot': (context) => const ChatbotScreen(),
         '/accessibility_settings': (context) =>
             const AccessibilitySettingsPage(),
-
-        '/chatscreen': (context) =>
-            const ChatScreen(), // No need to pass userId manually
+        '/chatscreen': (context) => const ChatScreen(),
         '/createAvatar': (context) => const CreateAvatar(),
       },
       onGenerateRoute: (settings) {
@@ -93,6 +91,14 @@ class MyApp extends StatelessWidget {
           return MaterialPageRoute(
             builder: (context) {
               return ChildInfoPage(userId: userId);
+            },
+          );
+        }
+        if (settings.name == '/learning_modules') {
+          final String subject = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) {
+              return LearningModulesScreen(subject: subject);
             },
           );
         }

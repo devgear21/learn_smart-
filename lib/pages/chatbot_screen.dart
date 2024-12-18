@@ -14,11 +14,11 @@ class ChatbotScreen extends StatefulWidget {
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _controller = TextEditingController();
-  String _response = '';
+  List<Map<String, String>> messages = [];
+  String? _generatedImageBase64;
   bool isLoading = false;
-  List<Map<String, String?>> messages = [];
-  final String apiUrl =
-      'https://542f-35-187-255-30.ngrok-free.app/generate-response';
+  final String apiUrl = 'https://306d-34-82-41-213.ngrok-free.app/chat';
+  String sessionId = "user-session-1";
 
   Future<void> sendMessage(String userInput) async {
     if (userInput.isEmpty) return;
@@ -28,60 +28,47 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       isLoading = true;
     });
 
-    List<String> conversationHistory = messages.map((msg) {
-      return "${msg['role'] == 'user' ? 'Child' : 'Chatbot'}: ${msg['content']}";
-    }).toList();
-
-    String conversationText = conversationHistory.join("\n");
-
     try {
       var response = await http.post(
         Uri.parse(apiUrl),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "user_input": userInput,
-          "conversation_history": conversationText,
+          "session_id": sessionId,
+          "message": userInput,
         }),
       );
 
       if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        String botResponse = jsonResponse['response'];
-        String? imageBase64 = jsonResponse['image'];
-
-        if (botResponse.contains('###')) {
-          botResponse = botResponse.split('###')[0].trim();
-        }
+        var jsonResponse = jsonDecode(response.body);
 
         setState(() {
-          _response = botResponse;
           messages.add({
-            "role": "bot",
-            "content": _response,
-            "image": imageBase64,
+            "role": "assistant",
+            "content":
+                cleanResponse(jsonResponse['assistant_reply'] ?? "No response")
           });
+          _generatedImageBase64 = jsonResponse['image'];
           isLoading = false;
         });
       } else {
         setState(() {
-          _response = 'Error: ${response.statusCode} - ${response.body}';
           messages.add({
-            "role": "bot",
-            "content": 'Something went wrong: ${response.statusCode}'
+            "role": "assistant",
+            "content": "Error: ${response.statusCode} - ${response.body}"
           });
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _response = 'Failed to connect: $e';
-        messages.add({
-          "role": "bot",
-          "content": 'Failed to connect. Please try again later.'
-        });
+        messages.add({"role": "assistant", "content": "Failed to connect: $e"});
         isLoading = false;
       });
     }
+  }
+
+  String cleanResponse(String response) {
+    return response.split('#').first.trim();
   }
 
   @override
@@ -91,148 +78,155 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     // Accessibility settings
     final fontFamily = settings.dyslexiaFriendly ? 'OpenDyslexic' : 'Poppins';
     final textColor = settings.highContrast ? Colors.yellow : Colors.black87;
-    final buttonBackgroundColor =
-        settings.highContrast ? Colors.black : Colors.blueAccent;
     final backgroundColor = settings.highContrast ? Colors.black : Colors.white;
+    final buttonColor =
+        settings.highContrast ? Colors.black : Colors.blueAccent;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'ChatBuddy',
+          '          ChatBuddy',
           style: TextStyle(
             fontFamily: fontFamily,
             color: textColor,
           ),
         ),
-        backgroundColor: buttonBackgroundColor,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Icon(Icons.account_circle, size: 30),
+        backgroundColor: buttonColor,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.settings_accessibility,
+              color: settings.highContrast ? Colors.yellow : Colors.white,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const AccessibilitySettingsPage()),
+              );
+            },
           ),
         ],
       ),
       body: Container(
-        color: backgroundColor, // Dynamically set background color
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  final message = messages[index];
-                  final isUser = message['role'] == 'user';
-
-                  return Column(
-                    crossAxisAlignment: isUser
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 16),
-                        margin: const EdgeInsets.symmetric(vertical: 5),
-                        constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.7),
+        color: backgroundColor,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Conversation Display
+              Expanded(
+                child: ListView.builder(
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    final isUser = message["role"] == "user";
+                    return Align(
+                      alignment:
+                          isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5.0, horizontal: 10.0),
+                        padding: const EdgeInsets.all(12.0),
                         decoration: BoxDecoration(
-                          color: isUser ? Colors.lightBlueAccent : Colors.white,
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(15),
-                            topRight: const Radius.circular(15),
-                            bottomLeft: isUser
-                                ? const Radius.circular(15)
-                                : Radius.zero,
-                            bottomRight: isUser
-                                ? Radius.zero
-                                : const Radius.circular(15),
-                          ),
+                          color: isUser
+                              ? buttonColor
+                              : (settings.highContrast
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300]),
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: Text(
-                          message['content']!,
+                          message["content"]!,
                           style: TextStyle(
                             fontFamily: fontFamily,
-                            color: textColor, // Text color changes dynamically
+                            color: isUser ? Colors.white : textColor,
                             fontSize: settings.fontSize,
                           ),
                         ),
                       ),
-                      if (message.containsKey('image') &&
-                          message['image'] != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5),
-                          child: Image.memory(
-                            base64Decode(message['image']!),
-                            width: 200,
-                            height: 200,
+                    );
+                  },
+                ),
+              ),
+
+              // Image Display (if available)
+              if (_generatedImageBase64 != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Container(
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: textColor, width: 1),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.memory(
+                        base64Decode(_generatedImageBase64!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Input and Send Button
+              if (isLoading)
+                const CircularProgressIndicator()
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        style: TextStyle(
+                          fontFamily: fontFamily,
+                          color: textColor,
+                          fontSize: settings.fontSize,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Type your message...',
+                          hintStyle: TextStyle(
+                            fontFamily: fontFamily,
+                            color: textColor,
+                          ),
+                          fillColor: settings.highContrast
+                              ? Colors.grey[900]
+                              : Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide.none,
                           ),
                         ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            if (isLoading)
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.settings_accessibility,
-                      color: buttonBackgroundColor,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AccessibilitySettingsPage()),
-                      );
-                    },
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      style: TextStyle(
-                        fontFamily: fontFamily,
-                        color: textColor, // Adjust typing text color
-                        fontSize: settings.fontSize,
                       ),
-                      decoration: InputDecoration(
-                        hintText: 'Type something...',
-                        hintStyle: TextStyle(
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        sendMessage(_controller.text);
+                        _controller.clear();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      child: Text(
+                        'Send',
+                        style: TextStyle(
                           fontFamily: fontFamily,
-                          color: textColor, // Adjust hint text color
+                          color: Colors.white,
+                          fontSize: settings.fontSize,
                         ),
-                        fillColor: Colors.white,
-                        filled: !settings.highContrast,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 20),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  FloatingActionButton(
-                    onPressed: () {
-                      sendMessage(_controller.text);
-                      _controller.clear();
-                    },
-                    backgroundColor: buttonBackgroundColor,
-                    child: const Icon(Icons.send, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ],
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
